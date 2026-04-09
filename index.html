@@ -525,23 +525,40 @@ function rankings() {
     if (metric === 'sellrate') return { main: '$' + s.p.toFixed(2) + '/kWh', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
   }
 
-  // Bar % based on metric
-  function barPct(s, isTop) {
-    if (metric === 'payback') return isTop ? Math.max(2, (1 - s.payback / all[all.length-1].payback) * 100) : Math.max(2, Math.min(100, (s.payback / 100) * 100));
-    if (metric === 'profit') { const mx = Math.max(...all.map(x => Math.abs(x.profit))); return Math.max(2, (Math.abs(s.profit) / mx) * 100); }
-    if (metric === 'margin') { const mx = Math.max(...all.map(x => Math.abs(x.margin))); return Math.max(2, (Math.abs(s.margin) / mx) * 100); }
-    if (metric === 'util') { const mx = Math.max(...all.map(x => x.u)); return Math.max(2, (s.u / mx) * 100); }
-    if (metric === 'energy') { const mx = Math.max(...all.map(x => x.e)); return Math.max(2, (s.e / mx) * 100); }
-    if (metric === 'sellrate') { const mx = Math.max(...all.map(x => x.p)); return Math.max(2, (s.p / mx) * 100); }
+  // Bar % — normalize each state's value relative to the full range
+  const ranges = {
+    payback: { vals: all.map(x => Math.min(x.payback, 100)), invert: true },
+    profit: { vals: all.map(x => x.profit) },
+    margin: { vals: all.map(x => x.margin) },
+    util: { vals: all.map(x => x.u) },
+    energy: { vals: all.map(x => x.e), invert: true },
+    sellrate: { vals: all.map(x => x.p) }
+  };
+  const r = ranges[metric] || ranges.payback;
+  const rMin = Math.min(...r.vals);
+  const rMax = Math.max(...r.vals);
+  const rSpan = rMax - rMin || 1;
+
+  function barPct(s) {
+    let v;
+    if (metric === 'payback') v = Math.min(s.payback, 100);
+    else if (metric === 'profit') v = s.profit;
+    else if (metric === 'margin') v = s.margin;
+    else if (metric === 'util') v = s.u;
+    else if (metric === 'energy') v = s.e;
+    else if (metric === 'sellrate') v = s.p;
+    else v = 0;
+    let pct = ((v - rMin) / rSpan) * 100;
+    if (r.invert) pct = 100 - pct; // for payback & energy: lower = better = longer bar
+    return Math.max(3, Math.min(100, pct));
   }
 
-  const mkList = (arr, el, isTop) => {
+  const mkList = (arr, el, ranks) => {
     el.innerHTML = arr.map((s, i) => {
-      const pct = barPct(s, isTop);
+      const pct = barPct(s);
       const v = fmtVal(s);
       const bg = getColor(s);
-      const num = isTop ? i + 1 : all.length - arr.length + i + 1;
-      return `<li data-code="${s.c}"><span class="rb-bg" style="width:${pct}%;background:${bg}"></span><span class="rn">${num}</span><span class="rs" style="color:${bg}">${s.c}${s.a?'*':''}</span><span class="rv" style="color:${bg}">${v.main}<small>${v.sub}</small></span></li>`;
+      return `<li data-code="${s.c}"><span class="rb-bg" style="width:${pct}%;background:${bg}"></span><span class="rn">${ranks[i]}</span><span class="rs" style="color:${bg}">${s.c}${s.a?'*':''}</span><span class="rv" style="color:${bg}">${v.main}<small>${v.sub}</small></span></li>`;
     }).join('');
   };
 
@@ -557,8 +574,13 @@ function rankings() {
   document.getElementById('topTitle').innerHTML = `Top 10 &mdash; ${topT}`;
   document.getElementById('botTitle').innerHTML = `Bottom 10 &mdash; ${botT}`;
 
-  mkList(all.slice(0, 10), document.getElementById('topL'), true);
-  mkList(all.slice(-10).reverse(), document.getElementById('botL'), false);
+  const top10 = all.slice(0, 10);
+  const bot10 = all.slice(-10).reverse(); // worst first
+  const topRanks = top10.map((_, i) => i + 1);
+  const botRanks = bot10.map((_, i) => all.length - i); // 51, 50, 49...
+
+  mkList(top10, document.getElementById('topL'), topRanks);
+  mkList(bot10, document.getElementById('botL'), botRanks);
 
   document.querySelectorAll('.rlist li').forEach(li => {
     li.addEventListener('mouseenter', () => {
