@@ -1,0 +1,512 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesla Supercharger for Business: State-by-State ROI Analysis</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
+<script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
+<script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<style>
+:root {
+  --font-body: 'Sora', system-ui, sans-serif;
+  --font-mono: 'IBM Plex Mono', 'SF Mono', Consolas, monospace;
+  --bg: #0c0f14;
+  --surface: #13161d;
+  --surface2: #1a1e28;
+  --surface3: #222733;
+  --border: rgba(255,255,255,0.06);
+  --border-bright: rgba(255,255,255,0.12);
+  --text: #e8ecf4;
+  --text-dim: #7a8194;
+  --text-muted: #4a5168;
+  --accent: #60a5fa;
+  --accent-dim: rgba(96,165,250,0.12);
+}
+@media (prefers-color-scheme: light) {
+  :root {
+    --bg: #f0f2f5;
+    --surface: #ffffff;
+    --surface2: #f5f6f8;
+    --surface3: #ebedf0;
+    --border: rgba(0,0,0,0.07);
+    --border-bright: rgba(0,0,0,0.14);
+    --text: #111827;
+    --text-dim: #6b7280;
+    --text-muted: #9ca3af;
+    --accent: #2563eb;
+    --accent-dim: rgba(37,99,235,0.08);
+  }
+}
+
+* { margin: 0; padding: 0; box-sizing: border-box; }
+body {
+  background: var(--bg);
+  background-image:
+    radial-gradient(ellipse at 20% 0%, rgba(96,165,250,0.04) 0%, transparent 50%),
+    radial-gradient(ellipse at 80% 100%, rgba(16,185,129,0.03) 0%, transparent 40%);
+  color: var(--text);
+  font-family: var(--font-body);
+  min-height: 100vh;
+}
+
+@keyframes fadeUp { from { opacity:0; transform:translateY(12px); } to { opacity:1; transform:translateY(0); } }
+@keyframes fadeScale { from { opacity:0; transform:scale(0.92); } to { opacity:1; transform:scale(1); } }
+.anim { animation: fadeUp 0.4s ease-out both; animation-delay: calc(var(--i,0)*0.05s); }
+.anim-s { animation: fadeScale 0.4s ease-out both; animation-delay: calc(var(--i,0)*0.05s); }
+@media (prefers-reduced-motion: reduce) { *,*::before,*::after { animation-duration:0.01ms!important; transition-duration:0.01ms!important; } }
+
+.page { max-width: 1440px; margin: 0 auto; padding: 32px 24px; }
+.header { text-align: center; margin-bottom: 28px; }
+.header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
+.header .sub { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+
+/* KPIs */
+.kpi-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px,1fr)); gap: 12px; margin-bottom: 20px; }
+.kpi { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 14px; text-align: center; }
+.kpi__val { font-size: 22px; font-weight: 700; font-variant-numeric: tabular-nums; line-height: 1.2; }
+.kpi__label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-top: 3px; }
+.kpi__val--green { color: #10b981; }
+.kpi__val--red { color: #ef4444; }
+.kpi__val--accent { color: var(--accent); }
+
+/* Controls */
+.controls { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px 18px; margin-bottom: 20px; display: flex; flex-wrap: wrap; gap: 18px; align-items: center; }
+.cg { display: flex; flex-direction: column; gap: 3px; }
+.cg label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+.cg select { background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 6px; padding: 5px 8px; font-family: var(--font-body); font-size: 12px; cursor: pointer; }
+.cg select:focus { outline: 1px solid var(--accent); }
+.sr { display: flex; align-items: center; gap: 6px; }
+.sv { font-family: var(--font-mono); font-size: 11px; color: var(--accent); min-width: 38px; text-align: right; }
+input[type=range] { -webkit-appearance: none; width: 130px; height: 4px; background: var(--surface3); border-radius: 2px; border: none; outline: none; }
+input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px; height: 14px; background: var(--accent); border-radius: 50%; cursor: grab; }
+
+/* Main layout */
+.main { display: grid; grid-template-columns: 1fr 280px; gap: 16px; }
+@media (max-width: 1024px) { .main { grid-template-columns: 1fr; } }
+
+/* Map */
+.map-box { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 16px; position: relative; }
+#map svg { width: 100%; height: auto; display: block; }
+.state-path { stroke: var(--border-bright); stroke-width: 2; cursor: pointer; transition: stroke-width 0.12s, filter 0.12s; }
+.state-path:hover { stroke: var(--text); stroke-width: 3; filter: brightness(1.2); }
+.state-path.active { stroke: var(--accent); stroke-width: 2; }
+.state-label { font-family: var(--font-mono); font-size: 9px; fill: var(--text); pointer-events: none; text-anchor: middle; dominant-baseline: central; font-weight: 600; opacity: 0.85; }
+
+/* Legend */
+.legend { display: flex; flex-wrap: wrap; gap: 10px; justify-content: center; margin-top: 10px; }
+.legend-item { display: flex; align-items: center; gap: 4px; font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); }
+.legend-swatch { width: 14px; height: 10px; border-radius: 2px; }
+
+/* Tooltip */
+.tt { position: fixed; z-index: 100; background: var(--surface2); border: 1px solid var(--border-bright); border-radius: 10px; padding: 14px 16px; pointer-events: none; opacity: 0; transition: opacity 0.12s; min-width: 250px; box-shadow: 0 8px 32px rgba(0,0,0,0.35); }
+.tt.show { opacity: 1; }
+.tt h3 { font-size: 14px; font-weight: 600; margin-bottom: 6px; }
+.tt .warn { color: #fbbf24; font-size: 10px; display: block; margin-bottom: 4px; }
+.tt-grid { display: grid; grid-template-columns: 1fr 1fr; gap: 2px 10px; }
+.tt-grid dt { font-family: var(--font-mono); font-size: 9px; color: var(--text-dim); text-transform: uppercase; letter-spacing: 0.4px; }
+.tt-grid dd { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; margin-bottom: 3px; }
+.tt-grid dd.pos { color: #10b981; }
+.tt-grid dd.neg { color: #ef4444; }
+.tt-pb { margin-top: 6px; padding-top: 6px; border-top: 1px solid var(--border); font-size: 14px; font-weight: 700; text-align: center; }
+
+/* Sidebar */
+.sidebar { display: flex; flex-direction: column; gap: 12px; }
+.rpanel { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 14px; }
+.rpanel h3 { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
+.rpanel h3 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.rlist { list-style: none; }
+.rlist li { display: flex; align-items: center; gap: 6px; padding: 5px 3px; border-bottom: 1px solid var(--border); font-size: 11px; cursor: pointer; border-radius: 3px; }
+.rlist li:last-child { border-bottom: none; }
+.rlist li:hover { background: var(--surface2); }
+.rn { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); width: 16px; text-align: right; flex-shrink: 0; }
+.rs { font-weight: 600; width: 26px; flex-shrink: 0; font-size: 11px; }
+.rb-w { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
+.rb { height: 100%; border-radius: 3px; }
+.rv { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); min-width: 52px; text-align: right; }
+.rv small { font-size: 9px; color: var(--text-muted); display: block; }
+
+/* Disclaimer */
+.disc { margin-top: 20px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+.disc strong { color: var(--text); }
+
+@media (max-width: 768px) {
+  .page { padding: 14px 10px; }
+  .header h1 { font-size: 18px; }
+  .kpi-bar { grid-template-columns: repeat(2,1fr); }
+  .controls { flex-direction: column; align-items: stretch; }
+}
+</style>
+</head>
+<body>
+<div class="page">
+  <div class="header anim" style="--i:0">
+    <h1>Tesla Supercharger for Business: State-by-State ROI Analysis</h1>
+    <div class="sub">Data from Tesla's Supercharger For Business page &middot; April 2026</div>
+  </div>
+
+  <div class="kpi-bar">
+    <div class="kpi anim-s" style="--i:1"><div class="kpi__val kpi__val--accent" id="kpi-med">--</div><div class="kpi__label">Median Payback</div></div>
+    <div class="kpi anim-s" style="--i:2"><div class="kpi__val kpi__val--green" id="kpi-best">--</div><div class="kpi__label">Best State</div></div>
+    <div class="kpi anim-s" style="--i:3"><div class="kpi__val kpi__val--red" id="kpi-worst">--</div><div class="kpi__label">Worst State</div></div>
+    <div class="kpi anim-s" style="--i:4"><div class="kpi__val kpi__val--accent" id="kpi-prof">--</div><div class="kpi__label">States &lt;5yr Payback</div></div>
+  </div>
+
+  <div class="controls anim" style="--i:5">
+    <div class="cg"><label>Color By</label><select id="selMetric"><option value="payback" selected>Payback Period</option><option value="profit">Annual Profit / Post</option><option value="margin">Gross Margin $/kWh</option><option value="util">Utilization kWh/day</option><option value="energy">Utility Rate $/kWh</option><option value="sellrate">Sell Rate $/kWh</option></select></div>
+    <div class="cg"><label>Installation Cost</label><select id="selInstall"><option value="45000">Low ($45K)</option><option value="55000" selected>Medium ($55K)</option><option value="65000">High ($65K)</option><option value="custom">Custom</option></select><input type="number" id="customInstall" style="display:none;width:100px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="$/post" value="55000"></div>
+    <div class="cg"><label>Post Count</label><select id="selPosts"><option value="4">4 Posts</option><option value="8" selected>8 Posts</option><option value="16">16 Posts</option><option value="24">24 Posts</option><option value="custom">Custom</option></select><input type="number" id="customPosts" style="display:none;width:80px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="# posts" min="1" value="8"></div>
+    <div class="cg"><label>Tesla PPU Fee</label><div class="sv" style="padding-top:4px">$0.10/kWh (fixed)</div></div>
+  </div>
+
+  <div class="main">
+    <div>
+      <div class="map-box anim" style="--i:6"><div id="map"></div></div>
+      <div class="legend anim" style="--i:7" id="leg"></div>
+    </div>
+    <div class="sidebar">
+      <div class="rpanel anim" style="--i:8"><h3><span class="dot" style="background:#10b981"></span> Top 10 &mdash; Best ROI</h3><ol class="rlist" id="topL"></ol></div>
+      <div class="rpanel anim" style="--i:9"><h3><span class="dot" style="background:#ef4444"></span> Bottom 10 &mdash; Worst ROI</h3><ol class="rlist" id="botL"></ol></div>
+    </div>
+  </div>
+
+  <div class="disc anim" style="--i:10">
+    <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
+    Assumes 7% YoY utilization growth, ~15% energy loss grid-to-vehicle, no parking rent, excludes hardware taxes.
+    <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
+  </div>
+</div>
+<div class="tt" id="tt"></div>
+
+<script>
+// ===== DATA =====
+const SD = {
+  "01":{c:"AL",n:"Alabama",e:0.172,p:0.46,u:143.5},
+  "02":{c:"AK",n:"Alaska",e:0.367,p:0.54,u:48.8},
+  "04":{c:"AZ",n:"Arizona",e:0.167,p:0.53,u:319.5},
+  "05":{c:"AR",n:"Arkansas",e:0.172,p:0.53,u:276.4},
+  "06":{c:"CA",n:"California",e:0.222,p:0.59,u:449.6},
+  "08":{c:"CO",n:"Colorado",e:0.168,p:0.49,u:237.6},
+  "09":{c:"CT",n:"Connecticut",e:0.242,p:0.59,u:268.8},
+  "10":{c:"DE",n:"Delaware",e:0.173,p:0.56,u:195.9},
+  "11":{c:"DC",n:"District of Columbia",e:0.284,p:0.61,u:534.1},
+  "12":{c:"FL",n:"Florida",e:0.138,p:0.46,u:453.4},
+  "13":{c:"GA",n:"Georgia",e:0.085,p:0.49,u:344.2},
+  "15":{c:"HI",n:"Hawaii",e:0.329,p:0.86,u:412.1},
+  "16":{c:"ID",n:"Idaho",e:0.118,p:0.46,u:184.2},
+  "17":{c:"IL",n:"Illinois",e:0.124,p:0.50,u:282.7},
+  "18":{c:"IN",n:"Indiana",e:0.186,p:0.53,u:194.1},
+  "19":{c:"IA",n:"Iowa",e:0.119,p:0.45,u:180.4},
+  "20":{c:"KS",n:"Kansas",e:0.174,p:0.45,u:185.6},
+  "21":{c:"KY",n:"Kentucky",e:0.200,p:0.54,u:252.4},
+  "22":{c:"LA",n:"Louisiana",e:0.148,p:0.56,u:228.7},
+  "23":{c:"ME",n:"Maine",e:0.008,p:0.61,u:82.0,a:true},
+  "24":{c:"MD",n:"Maryland",e:0.134,p:0.55,u:376.3},
+  "25":{c:"MA",n:"Massachusetts",e:0.141,p:0.59,u:262.4},
+  "26":{c:"MI",n:"Michigan",e:0.167,p:0.49,u:218.4},
+  "27":{c:"MN",n:"Minnesota",e:0.199,p:0.48,u:215.3},
+  "28":{c:"MS",n:"Mississippi",e:0.165,p:0.49,u:210.2},
+  "29":{c:"MO",n:"Missouri",e:0.153,p:0.45,u:241.7},
+  "30":{c:"MT",n:"Montana",e:0.333,p:0.50,u:81.5},
+  "31":{c:"NE",n:"Nebraska",e:0.204,p:0.42,u:156.1},
+  "32":{c:"NV",n:"Nevada",e:0.169,p:0.57,u:273.4},
+  "33":{c:"NH",n:"New Hampshire",e:0.259,p:0.56,u:144.6},
+  "34":{c:"NJ",n:"New Jersey",e:0.115,p:0.63,u:433.7},
+  "35":{c:"NM",n:"New Mexico",e:0.176,p:0.51,u:212.3},
+  "36":{c:"NY",n:"New York",e:0.228,p:0.54,u:318.8},
+  "37":{c:"NC",n:"North Carolina",e:0.146,p:0.49,u:227.7},
+  "38":{c:"ND",n:"North Dakota",e:0.248,p:0.44,u:78.2},
+  "39":{c:"OH",n:"Ohio",e:0.073,p:0.52,u:242.2},
+  "40":{c:"OK",n:"Oklahoma",e:0.145,p:0.51,u:259.1},
+  "41":{c:"OR",n:"Oregon",e:0.159,p:0.51,u:229.9},
+  "42":{c:"PA",n:"Pennsylvania",e:0.114,p:0.53,u:232.9},
+  "44":{c:"RI",n:"Rhode Island",e:0.249,p:0.59,u:289.9},
+  "45":{c:"SC",n:"South Carolina",e:0.154,p:0.51,u:262.4},
+  "46":{c:"SD",n:"South Dakota",e:0.289,p:0.46,u:87.5},
+  "47":{c:"TN",n:"Tennessee",e:0.209,p:0.49,u:225.3},
+  "48":{c:"TX",n:"Texas",e:0.108,p:0.51,u:302.3},
+  "49":{c:"UT",n:"Utah",e:0.194,p:0.47,u:302.8},
+  "50":{c:"VT",n:"Vermont",e:0.207,p:0.47,u:151.9},
+  "51":{c:"VA",n:"Virginia",e:0.079,p:0.55,u:313.9},
+  "53":{c:"WA",n:"Washington",e:0.103,p:0.49,u:297.9},
+  "54":{c:"WV",n:"West Virginia",e:0.326,p:0.53,u:156.1},
+  "55":{c:"WI",n:"Wisconsin",e:0.217,p:0.50,u:194.8},
+  "56":{c:"WY",n:"Wyoming",e:0.232,p:0.59,u:131.0}
+};
+
+// FIPS lookup by state abbreviation
+const codeToFips = {};
+for (const [fips, d] of Object.entries(SD)) codeToFips[d.c] = fips;
+
+// Hardware cost per post (fixed nationally)
+const HW_PER_POST = 55000 + 3000 + 3000 + 1500; // cabinet + other HW + services + shipping = $62,500
+let installPerPost = 55000; // Low $45K, Medium $55K, High $65K
+let postCount = 8;
+let fee = 0.10, metric = 'payback';
+
+function costPerPost() { return HW_PER_POST + installPerPost; }
+
+function calc(s) {
+  const m = s.p - s.e - fee;
+  const profitPerPost = m * s.u * 365;
+  const cpp = costPerPost();
+  const pb = profitPerPost > 0 ? cpp / profitPerPost : 999;
+  const totalSiteInvestment = cpp * postCount;
+  const totalSiteProfit = profitPerPost * postCount;
+  return { margin: m, profit: profitPerPost, cost: cpp, payback: pb, siteInvest: totalSiteInvestment, siteProfit: totalSiteProfit };
+}
+
+// Color scales
+const colors = {
+  excellent: '#10b981', good: '#34d399', moderate: '#fbbf24',
+  marginal: '#f59e0b', poor: '#ef4444', terrible: '#991b1b'
+};
+
+function getColor(s) {
+  const c = calc(s);
+  if (metric === 'payback') {
+    const v = c.payback;
+    if (v < 3) return colors.excellent; if (v < 5) return colors.good;
+    if (v < 8) return colors.moderate; if (v < 15) return colors.marginal;
+    if (v < 30) return colors.poor; return colors.terrible;
+  }
+  if (metric === 'profit') {
+    const v = c.profit;
+    if (v > 40000) return colors.excellent; if (v > 25000) return colors.good;
+    if (v > 15000) return colors.moderate; if (v > 5000) return colors.marginal;
+    if (v > 0) return colors.poor; return colors.terrible;
+  }
+  if (metric === 'margin') {
+    const v = c.margin;
+    if (v > 0.35) return colors.excellent; if (v > 0.25) return colors.good;
+    if (v > 0.15) return colors.moderate; if (v > 0.08) return colors.marginal;
+    if (v > 0) return colors.poor; return colors.terrible;
+  }
+  if (metric === 'energy') {
+    // Lower energy cost = better (green), higher = worse (red)
+    const v = s.e;
+    if (v < 0.10) return colors.excellent; if (v < 0.14) return colors.good;
+    if (v < 0.18) return colors.moderate; if (v < 0.22) return colors.marginal;
+    if (v < 0.28) return colors.poor; return colors.terrible;
+  }
+  if (metric === 'sellrate') {
+    // Higher sell rate = better (green)
+    const v = s.p;
+    if (v > 0.60) return colors.excellent; if (v > 0.55) return colors.good;
+    if (v > 0.51) return colors.moderate; if (v > 0.48) return colors.marginal;
+    if (v > 0.45) return colors.poor; return colors.terrible;
+  }
+  const v = s.u;
+  if (v > 350) return colors.excellent; if (v > 250) return colors.good;
+  if (v > 180) return colors.moderate; if (v > 120) return colors.marginal;
+  if (v > 80) return colors.poor; return colors.terrible;
+}
+
+function legendItems() {
+  if (metric === 'payback') return [['< 3 yr',colors.excellent],['3-5 yr',colors.good],['5-8 yr',colors.moderate],['8-15 yr',colors.marginal],['15-30 yr',colors.poor],['30+ yr',colors.terrible]];
+  if (metric === 'profit') return [['> $40K',colors.excellent],['$25-40K',colors.good],['$15-25K',colors.moderate],['$5-15K',colors.marginal],['$0-5K',colors.poor],['< $0',colors.terrible]];
+  if (metric === 'margin') return [['> $0.35',colors.excellent],['$0.25-0.35',colors.good],['$0.15-0.25',colors.moderate],['$0.08-0.15',colors.marginal],['$0-0.08',colors.poor],['< $0',colors.terrible]];
+  if (metric === 'energy') return [['< $0.10',colors.excellent],['$0.10-0.14',colors.good],['$0.14-0.18',colors.moderate],['$0.18-0.22',colors.marginal],['$0.22-0.28',colors.poor],['> $0.28',colors.terrible]];
+  if (metric === 'sellrate') return [['> $0.60',colors.excellent],['$0.55-0.60',colors.good],['$0.51-0.55',colors.moderate],['$0.48-0.51',colors.marginal],['$0.45-0.48',colors.poor],['< $0.45',colors.terrible]];
+  return [['> 350',colors.excellent],['250-350',colors.good],['180-250',colors.moderate],['120-180',colors.marginal],['80-120',colors.poor],['< 80',colors.terrible]];
+}
+
+// ===== MAP =====
+const mapDiv = document.getElementById('map');
+const ttEl = document.getElementById('tt');
+let geoData = null;
+
+async function loadMap() {
+  const resp = await fetch('https://cdn.jsdelivr.net/npm/us-atlas@3/states-albers-10m.json');
+  const us = await resp.json();
+  geoData = us;
+  drawMap();
+}
+
+function drawMap() {
+  if (!geoData) return;
+  mapDiv.innerHTML = '';
+  const w = mapDiv.clientWidth || 900;
+  const h = w * 0.62;
+  const svg = d3.select('#map').append('svg')
+    .attr('viewBox', `0 0 975 610`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+
+  const path = d3.geoPath();
+  const states = topojson.feature(geoData, geoData.objects.states);
+
+  svg.append('g')
+    .selectAll('path')
+    .data(states.features)
+    .join('path')
+    .attr('d', path)
+    .attr('class', 'state-path')
+    .attr('fill', d => {
+      const s = SD[d.id];
+      return s ? getColor(s) : '#333';
+    })
+    .attr('data-fips', d => d.id)
+    .on('mouseenter', function(ev, d) {
+      const s = SD[d.id];
+      if (!s) return;
+      d3.select(this).raise();
+      showTT(ev, s);
+    })
+    .on('mousemove', function(ev) { moveTT(ev); })
+    .on('mouseleave', function() { hideTT(); d3.select(this).classed('active', false); });
+
+  // State labels (centroid)
+  svg.append('g')
+    .selectAll('text')
+    .data(states.features)
+    .join('text')
+    .attr('class', 'state-label')
+    .attr('x', d => { const c = path.centroid(d); return c[0]; })
+    .attr('y', d => { const c = path.centroid(d); return c[1]; })
+    .text(d => { const s = SD[d.id]; return s ? s.c : ''; })
+    .style('display', d => {
+      // Hide labels for very small states
+      const b = path.bounds(d);
+      const area = (b[1][0]-b[0][0]) * (b[1][1]-b[0][1]);
+      return area < 400 ? 'none' : null;
+    });
+}
+
+function showTT(ev, s) {
+  const c = calc(s);
+  const pbStr = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
+  const profStr = c.profit > 0 ? '$' + Math.round(c.profit).toLocaleString() : '-$' + Math.round(Math.abs(c.profit)).toLocaleString();
+  const warn = s.a ? `<span class="warn">&#9888; Data anomaly: $0.008/kWh likely erroneous (actual ~$0.15-0.18)</span>` : '';
+  const siteStr = c.siteProfit > 0 ? '$' + Math.round(c.siteProfit).toLocaleString() : '-$' + Math.round(Math.abs(c.siteProfit)).toLocaleString();
+  ttEl.innerHTML = `<h3>${s.n} (${s.c})</h3>${warn}
+    <dl class="tt-grid">
+      <dt>Energy Cost</dt><dd>$${s.e.toFixed(3)}/kWh</dd>
+      <dt>Selling Price</dt><dd>$${s.p.toFixed(2)}/kWh</dd>
+      <dt>Utilization</dt><dd>${s.u.toFixed(0)} kWh/post/day</dd>
+      <dt>Gross Margin</dt><dd class="${c.margin>0.15?'pos':c.margin<0.05?'neg':''}">$${c.margin.toFixed(3)}/kWh</dd>
+      <dt>Profit/Post/Yr</dt><dd class="${c.profit>15000?'pos':c.profit<5000?'neg':''}">${profStr}</dd>
+      <dt>Cost/Post</dt><dd>$${Math.round(c.cost).toLocaleString()}</dd>
+      <dt>Site Investment</dt><dd>$${Math.round(c.siteInvest).toLocaleString()}</dd>
+      <dt>Site Profit/Yr</dt><dd class="${c.siteProfit>100000?'pos':c.siteProfit<40000?'neg':''}">${siteStr}</dd>
+    </dl>
+    <div class="tt-pb" style="color:${getColor(s)}">${postCount} posts &middot; Payback: ${pbStr}</div>`;
+  ttEl.classList.add('show');
+  moveTT(ev);
+}
+function moveTT(ev) {
+  let x = ev.clientX + 16, y = ev.clientY + 16;
+  if (x + 270 > window.innerWidth) x = ev.clientX - 270;
+  if (y + 220 > window.innerHeight) y = ev.clientY - 220;
+  ttEl.style.left = x + 'px'; ttEl.style.top = y + 'px';
+}
+function hideTT() { ttEl.classList.remove('show'); }
+
+// ===== RANKINGS =====
+function rankings() {
+  const all = Object.values(SD).map(s => ({ ...s, ...calc(s) })).sort((a,b) => a.payback - b.payback);
+  const maxP = Math.max(...all.map(s => s.profit));
+
+  const mkList = (arr, el, isTop) => {
+    el.innerHTML = arr.map((s, i) => {
+      const pct = isTop ? Math.max(2, (s.profit / maxP) * 100) : Math.max(2, Math.min(100, (s.payback / 100) * 100));
+      const pb = s.payback > 100 ? '100+' : s.payback.toFixed(1);
+      const prof = s.profit > 0 ? '$' + (s.profit/1000).toFixed(1) + 'K' : '-$' + (Math.abs(s.profit)/1000).toFixed(1) + 'K';
+      const bg = isTop ? colors.excellent : colors.poor;
+      const num = isTop ? i + 1 : all.length - arr.length + i + 1;
+      return `<li data-code="${s.c}"><span class="rn">${num}</span><span class="rs">${s.c}${s.a?'*':''}</span><span class="rb-w"><span class="rb" style="width:${pct}%;background:${bg}"></span></span><span class="rv">${pb} yr<small>${prof}/yr</small></span></li>`;
+    }).join('');
+  };
+
+  mkList(all.slice(0, 10), document.getElementById('topL'), true);
+  mkList(all.slice(-10).reverse(), document.getElementById('botL'), false);
+
+  document.querySelectorAll('.rlist li').forEach(li => {
+    li.addEventListener('mouseenter', () => {
+      const code = li.dataset.code;
+      const fips = codeToFips[code];
+      d3.selectAll('.state-path').classed('active', false);
+      d3.select(`[data-fips="${fips}"]`).classed('active', true).raise();
+    });
+    li.addEventListener('mouseleave', () => {
+      d3.selectAll('.state-path').classed('active', false);
+    });
+  });
+}
+
+// ===== KPIs =====
+function kpis() {
+  const all = Object.values(SD).map(s => ({ ...s, ...calc(s) }));
+  const pbs = all.map(s => s.payback).sort((a,b) => a - b);
+  const med = pbs[Math.floor(pbs.length / 2)];
+  const best = all.reduce((a, b) => a.payback < b.payback ? a : b);
+  const worst = all.reduce((a, b) => a.payback > b.payback ? a : b);
+  const prof = all.filter(s => s.payback < 5).length;
+
+  document.getElementById('kpi-med').textContent = (med > 100 ? '100+' : med.toFixed(1)) + ' yr';
+  document.getElementById('kpi-best').textContent = best.c + ' (' + best.payback.toFixed(1) + ' yr)';
+  document.getElementById('kpi-worst').textContent = worst.c + ' (' + (worst.payback > 100 ? '100+' : worst.payback.toFixed(0)) + ' yr)';
+  document.getElementById('kpi-prof').textContent = prof + ' / 51';
+}
+
+// ===== LEGEND =====
+function legend() {
+  document.getElementById('leg').innerHTML = legendItems().map(([l,c]) =>
+    `<div class="legend-item"><div class="legend-swatch" style="background:${c}"></div>${l}</div>`
+  ).join('');
+}
+
+// ===== RENDER ALL =====
+function renderAll() {
+  drawMap();
+  rankings();
+  kpis();
+  legend();
+}
+
+// ===== CONTROLS =====
+document.getElementById('selMetric').addEventListener('change', e => { metric = e.target.value; renderAll(); });
+
+document.getElementById('selInstall').addEventListener('change', e => {
+  const ci = document.getElementById('customInstall');
+  if (e.target.value === 'custom') {
+    ci.style.display = 'block';
+    installPerPost = parseInt(ci.value) || 55000;
+  } else {
+    ci.style.display = 'none';
+    installPerPost = parseInt(e.target.value);
+  }
+  renderAll();
+});
+document.getElementById('customInstall').addEventListener('input', e => {
+  installPerPost = parseInt(e.target.value) || 55000;
+  renderAll();
+});
+
+document.getElementById('selPosts').addEventListener('change', e => {
+  const cp = document.getElementById('customPosts');
+  if (e.target.value === 'custom') {
+    cp.style.display = 'block';
+    postCount = parseInt(cp.value) || 8;
+  } else {
+    cp.style.display = 'none';
+    postCount = parseInt(e.target.value);
+  }
+  renderAll();
+});
+document.getElementById('customPosts').addEventListener('input', e => {
+  postCount = Math.max(1, parseInt(e.target.value) || 1);
+  renderAll();
+});
+
+
+// ===== INIT =====
+loadMap().then(() => {
+  rankings();
+  kpis();
+  legend();
+});
+</script>
+</body>
+</html>
