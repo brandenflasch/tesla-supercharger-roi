@@ -240,6 +240,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
           <th data-col="u" class="sortable num">Utilization</th>
           <th data-col="margin" class="sortable num">Margin</th>
           <th data-col="profit" class="sortable num">Profit/Post/Yr</th>
+          <th data-col="feePerPost" class="sortable num">Fee/Post/Yr</th>
+          <th data-col="feeRevPct" class="sortable num">Fee % Rev</th>
+          <th data-col="feeProfPct" class="sortable num">Fee % Gross</th>
           <th data-col="payback" class="sortable num">Payback</th>
           <th data-col="siteInvest" class="sortable num">Site Investment</th>
           <th data-col="siteProfit" class="sortable num">Site Profit/Yr</th>
@@ -253,8 +256,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
     <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
-    <a href="#" id="fixMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use $0.15/kWh for Maine</a>
-    <span id="maineFixed" style="display:none;color:#10b981;margin-left:4px;">&#10003; Maine set to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Revert</a></span>
+    <span id="maineFixed" style="color:#10b981;margin-left:4px;">&#10003; Maine corrected to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use raw $0.008</a></span>
+    <a href="#" id="fixMaine" style="display:none;color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Restore $0.15/kWh for Maine</a>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -281,7 +284,7 @@ const SD = {
   "20":{c:"KS",n:"Kansas",e:0.174,p:0.45,u:185.6},
   "21":{c:"KY",n:"Kentucky",e:0.200,p:0.54,u:252.4},
   "22":{c:"LA",n:"Louisiana",e:0.148,p:0.56,u:228.7},
-  "23":{c:"ME",n:"Maine",e:0.008,p:0.61,u:82.0,a:true},
+  "23":{c:"ME",n:"Maine",e:0.15,p:0.61,u:82.0,a:false},
   "24":{c:"MD",n:"Maryland",e:0.134,p:0.55,u:376.3},
   "25":{c:"MA",n:"Massachusetts",e:0.141,p:0.59,u:262.4},
   "26":{c:"MI",n:"Michigan",e:0.167,p:0.49,u:218.4},
@@ -329,6 +332,15 @@ const TESLA_FEE_ESC = 0.03;    // 3% annual escalation on Tesla fee
 const UTIL_GROWTH = 0.07;      // 7% YoY utilization growth
 let metric = 'payback';
 
+// Format dollar values — negative shown as ($X,XXX) in red
+function fmtDollar(v, decimals) {
+  const abs = Math.abs(v);
+  let str;
+  if (decimals !== undefined) str = '$' + abs.toFixed(decimals);
+  else str = '$' + Math.round(abs).toLocaleString();
+  return v < 0 ? '(' + str + ')' : str;
+}
+
 function costPerPost() { return HW_PER_POST + installPerPost; }
 
 // Year 1 calculation (used for map coloring, rankings, KPIs)
@@ -342,7 +354,10 @@ function calc(s) {
   const pb = profitPerPost > 0 ? cpp / profitPerPost : 999;
   const totalSiteInvestment = cpp * postCount;
   const totalSiteProfit = profitPerPost * postCount;
-  return { margin: effectiveMargin, revenue: revenuePerPost, profit: profitPerPost, cost: cpp, payback: pb, siteInvest: totalSiteInvestment, siteProfit: totalSiteProfit };
+  const feePerPost = TESLA_FEE_BASE * kwhPerPostYr;
+  const feeRevPct = revenuePerPost > 0 ? (feePerPost / revenuePerPost) * 100 : 0;
+  const feeProfPct = (profitPerPost + feePerPost) > 0 ? (feePerPost / (profitPerPost + feePerPost)) * 100 : 0; // fee as % of gross profit (before fee)
+  return { margin: effectiveMargin, revenue: revenuePerPost, profit: profitPerPost, cost: cpp, payback: pb, siteInvest: totalSiteInvestment, siteProfit: totalSiteProfit, feePerPost, feeRevPct, feeProfPct };
 }
 
 // Full 15-year model matching Tesla's server-side math exactly
@@ -474,10 +489,11 @@ function drawMap() {
 function showTT(ev, s) {
   const c = calc(s);
   const pbStr = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
-  const profStr = c.profit > 0 ? '$' + Math.round(c.profit).toLocaleString() : '-$' + Math.round(Math.abs(c.profit)).toLocaleString();
+  const profStr = fmtDollar(c.profit);
   const warn = s.a ? `<span class="warn">&#9888; Data anomaly: $0.008/kWh likely erroneous (actual ~$0.15-0.18)</span>` : '';
-  const siteStr = c.siteProfit > 0 ? '$' + Math.round(c.siteProfit).toLocaleString() : '-$' + Math.round(Math.abs(c.siteProfit)).toLocaleString();
-  const revStr = '$' + Math.round(c.revenue).toLocaleString();
+  const siteStr = fmtDollar(c.siteProfit);
+  const revStr = fmtDollar(c.revenue);
+  const feeStr = fmtDollar(c.feePerPost);
   ttEl.innerHTML = `<h3>${s.n} (${s.c})</h3>${warn}
     <dl class="tt-grid">
       <dt>Energy Cost</dt><dd>$${s.e.toFixed(3)}/kWh</dd>
@@ -487,6 +503,9 @@ function showTT(ev, s) {
       <dt>Net Margin</dt><dd class="${c.margin>0.10?'pos':c.margin<0.03?'neg':''}">$${c.margin.toFixed(3)}/kWh</dd>
       <dt>Revenue/Post/Yr</dt><dd>${revStr}</dd>
       <dt>Profit/Post/Yr</dt><dd class="${c.profit>15000?'pos':c.profit<5000?'neg':''}">${profStr}</dd>
+      <dt>Tesla Fee/Post/Yr</dt><dd style="color:var(--roi-marginal)">${feeStr}</dd>
+      <dt>Fee % of Revenue</dt><dd style="color:var(--roi-marginal)">${c.feeRevPct.toFixed(1)}%</dd>
+      <dt>Fee % of Gross Profit</dt><dd style="color:var(--roi-marginal)">${c.feeProfPct.toFixed(1)}%</dd>
       <dt>Cost/Post</dt><dd>$${Math.round(c.cost).toLocaleString()}</dd>
       <dt>Site Investment</dt><dd>$${Math.round(c.siteInvest).toLocaleString()}</dd>
       <dt>Site Profit/Yr</dt><dd class="${c.siteProfit>100000?'pos':c.siteProfit<40000?'neg':''}">${siteStr}</dd>
@@ -516,13 +535,16 @@ function rankings() {
   else if (metric === 'sellrate') all.sort((a, b) => b.p - a.p);
 
   // Format the primary value for display based on metric
+  function fmtK(v) { return v < 0 ? '(' + '$' + (Math.abs(v)/1000).toFixed(1) + 'K)' : '$' + (v/1000).toFixed(1) + 'K'; }
   function fmtVal(s) {
-    if (metric === 'payback') return { main: (s.payback > 100 ? '100+' : s.payback.toFixed(1)) + ' yr', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
-    if (metric === 'profit') return { main: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr', sub: s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr' };
-    if (metric === 'margin') return { main: '$' + s.margin.toFixed(3) + '/kWh', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
-    if (metric === 'util') return { main: s.u.toFixed(0) + ' kWh/d', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
-    if (metric === 'energy') return { main: '$' + s.e.toFixed(3) + '/kWh', sub: s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr' };
-    if (metric === 'sellrate') return { main: '$' + s.p.toFixed(2) + '/kWh', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
+    const profSub = fmtK(s.profit) + '/yr';
+    const pbSub = s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr';
+    if (metric === 'payback') return { main: pbSub, sub: profSub };
+    if (metric === 'profit') return { main: fmtK(s.profit) + '/yr', sub: pbSub };
+    if (metric === 'margin') return { main: fmtDollar(s.margin, 3) + '/kWh', sub: profSub };
+    if (metric === 'util') return { main: s.u.toFixed(0) + ' kWh/d', sub: profSub };
+    if (metric === 'energy') return { main: '$' + s.e.toFixed(3) + '/kWh', sub: pbSub };
+    if (metric === 'sellrate') return { main: '$' + s.p.toFixed(2) + '/kWh', sub: profSub };
   }
 
   // Bar % — normalize each state's value relative to the full range
@@ -764,6 +786,9 @@ function renderTable() {
     else if (sortCol === 'margin') { va = a.margin; vb = b.margin; }
     else if (sortCol === 'profit') { va = a.profit; vb = b.profit; }
     else if (sortCol === 'payback') { va = a.payback; vb = b.payback; }
+    else if (sortCol === 'feePerPost') { va = a.feePerPost; vb = b.feePerPost; }
+    else if (sortCol === 'feeRevPct') { va = a.feeRevPct; vb = b.feeRevPct; }
+    else if (sortCol === 'feeProfPct') { va = a.feeProfPct; vb = b.feeProfPct; }
     else if (sortCol === 'siteInvest') { va = a.siteInvest; vb = b.siteInvest; }
     else if (sortCol === 'siteProfit') { va = a.siteProfit; vb = b.siteProfit; }
     else { va = a.payback; vb = b.payback; }
@@ -774,8 +799,6 @@ function renderTable() {
   tbody.innerHTML = all.map(s => {
     const color = getColor(s);
     const pb = s.payback > 100 ? '100+' : s.payback.toFixed(1);
-    const prof = s.profit > 0 ? '$' + Math.round(s.profit).toLocaleString() : '-$' + Math.round(Math.abs(s.profit)).toLocaleString();
-    const sProf = s.siteProfit > 0 ? '$' + Math.round(s.siteProfit).toLocaleString() : '-$' + Math.round(Math.abs(s.siteProfit)).toLocaleString();
     const anomaly = s.a ? ' <span class="anomaly-mark">&#9888;</span>' : '';
     const profClass = s.profit > 15000 ? 'pos' : s.profit < 5000 ? 'neg' : '';
     const sProfClass = s.siteProfit > 100000 ? 'pos' : s.siteProfit < 40000 ? 'neg' : '';
@@ -784,11 +807,14 @@ function renderTable() {
       <td class="num">$${s.e.toFixed(3)}</td>
       <td class="num">$${s.p.toFixed(2)}</td>
       <td class="num">${s.u.toFixed(0)}</td>
-      <td class="num ${s.margin > 0.15 ? 'pos' : s.margin < 0.05 ? 'neg' : ''}">$${s.margin.toFixed(3)}</td>
-      <td class="num ${profClass}">${prof}</td>
+      <td class="num ${s.margin > 0.10 ? 'pos' : s.margin < 0.03 ? 'neg' : ''}">${fmtDollar(s.margin, 3)}/kWh</td>
+      <td class="num ${profClass}">${fmtDollar(s.profit)}</td>
+      <td class="num" style="color:var(--roi-marginal)">$${Math.round(s.feePerPost).toLocaleString()}</td>
+      <td class="num" style="color:var(--roi-marginal)">${s.feeRevPct.toFixed(1)}%</td>
+      <td class="num" style="color:var(--roi-marginal)">${s.feeProfPct.toFixed(1)}%</td>
       <td class="num">${pb} yr</td>
       <td class="num">$${Math.round(s.siteInvest).toLocaleString()}</td>
-      <td class="num ${sProfClass}">${sProf}</td>
+      <td class="num ${sProfClass}">${fmtDollar(s.siteProfit)}</td>
     </tr>`;
   }).join('');
 
