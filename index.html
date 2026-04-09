@@ -251,7 +251,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 
   <div class="disc anim" style="--i:13">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
-    Assumes 7% YoY utilization growth, ~15% energy loss grid-to-vehicle, no parking rent, excludes hardware taxes.
+    <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
     <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
     <a href="#" id="fixMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use $0.15/kWh for Maine</a>
     <span id="maineFixed" style="display:none;color:#10b981;margin-left:4px;">&#10003; Maine set to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Revert</a></span>
@@ -323,18 +323,36 @@ for (const [fips, d] of Object.entries(SD)) codeToFips[d.c] = fips;
 const HW_PER_POST = 55000 + 3000 + 3000 + 1500; // cabinet + other HW + services + shipping = $62,500
 let installPerPost = 55000; // Low $45K, Medium $55K, High $65K
 let postCount = 8;
-let fee = 0.10, metric = 'payback';
+const ENERGY_LOSS = 0.87;      // 13% grid-to-battery loss (Tesla rounds to "~15%" in disclaimer)
+const TESLA_FEE_BASE = 0.10;   // $/kWh operational fee
+const TESLA_FEE_ESC = 0.03;    // 3% annual escalation on Tesla fee
+const UTIL_GROWTH = 0.07;      // 7% YoY utilization growth
+let metric = 'payback';
 
 function costPerPost() { return HW_PER_POST + installPerPost; }
 
+// Year 1 calculation (used for map coloring, rankings, KPIs)
 function calc(s) {
-  const m = s.p - s.e - fee;
-  const profitPerPost = m * s.u * 365;
+  const kwhPerPostYr = s.u * 365;
+  const revenuePerPost = s.p * ENERGY_LOSS * kwhPerPostYr;                    // sell × 0.87 × kWh
+  const costPerPostYr = (s.e + TESLA_FEE_BASE) * kwhPerPostYr;               // (energy + $0.10) × kWh
+  const profitPerPost = revenuePerPost - costPerPostYr;
+  const effectiveMargin = profitPerPost / kwhPerPostYr;                       // net margin per grid kWh
   const cpp = costPerPost();
   const pb = profitPerPost > 0 ? cpp / profitPerPost : 999;
   const totalSiteInvestment = cpp * postCount;
   const totalSiteProfit = profitPerPost * postCount;
-  return { margin: m, profit: profitPerPost, cost: cpp, payback: pb, siteInvest: totalSiteInvestment, siteProfit: totalSiteProfit };
+  return { margin: effectiveMargin, revenue: revenuePerPost, profit: profitPerPost, cost: cpp, payback: pb, siteInvest: totalSiteInvestment, siteProfit: totalSiteProfit };
+}
+
+// Full 15-year model matching Tesla's server-side math exactly
+function calcYear(s, year, posts) {
+  const growthMult = Math.pow(1 + UTIL_GROWTH, year - 1);
+  const kwhYr = s.u * 365 * posts * growthMult;
+  const revenue = s.p * ENERGY_LOSS * kwhYr;
+  const teslaFeeYr = TESLA_FEE_BASE * Math.pow(1 + TESLA_FEE_ESC, year - 1);
+  const cost = (s.e + teslaFeeYr) * kwhYr;
+  return { revenue, cost, net: revenue - cost, kwhYr, teslaFeeYr };
 }
 
 // Color scales
@@ -359,8 +377,8 @@ function getColor(s) {
   }
   if (metric === 'margin') {
     const v = c.margin;
-    if (v > 0.35) return colors.excellent; if (v > 0.25) return colors.good;
-    if (v > 0.15) return colors.moderate; if (v > 0.08) return colors.marginal;
+    if (v > 0.25) return colors.excellent; if (v > 0.18) return colors.good;
+    if (v > 0.10) return colors.moderate; if (v > 0.04) return colors.marginal;
     if (v > 0) return colors.poor; return colors.terrible;
   }
   if (metric === 'energy') {
@@ -386,7 +404,7 @@ function getColor(s) {
 function legendItems() {
   if (metric === 'payback') return [['< 3 yr',colors.excellent],['3-5 yr',colors.good],['5-8 yr',colors.moderate],['8-15 yr',colors.marginal],['15-30 yr',colors.poor],['30+ yr',colors.terrible]];
   if (metric === 'profit') return [['> $40K',colors.excellent],['$25-40K',colors.good],['$15-25K',colors.moderate],['$5-15K',colors.marginal],['$0-5K',colors.poor],['< $0',colors.terrible]];
-  if (metric === 'margin') return [['> $0.35',colors.excellent],['$0.25-0.35',colors.good],['$0.15-0.25',colors.moderate],['$0.08-0.15',colors.marginal],['$0-0.08',colors.poor],['< $0',colors.terrible]];
+  if (metric === 'margin') return [['> $0.25',colors.excellent],['$0.18-0.25',colors.good],['$0.10-0.18',colors.moderate],['$0.04-0.10',colors.marginal],['$0-0.04',colors.poor],['< $0',colors.terrible]];
   if (metric === 'energy') return [['< $0.10',colors.excellent],['$0.10-0.14',colors.good],['$0.14-0.18',colors.moderate],['$0.18-0.22',colors.marginal],['$0.22-0.28',colors.poor],['> $0.28',colors.terrible]];
   if (metric === 'sellrate') return [['> $0.60',colors.excellent],['$0.55-0.60',colors.good],['$0.51-0.55',colors.moderate],['$0.48-0.51',colors.marginal],['$0.45-0.48',colors.poor],['< $0.45',colors.terrible]];
   return [['> 350',colors.excellent],['250-350',colors.good],['180-250',colors.moderate],['120-180',colors.marginal],['80-120',colors.poor],['< 80',colors.terrible]];
@@ -459,12 +477,15 @@ function showTT(ev, s) {
   const profStr = c.profit > 0 ? '$' + Math.round(c.profit).toLocaleString() : '-$' + Math.round(Math.abs(c.profit)).toLocaleString();
   const warn = s.a ? `<span class="warn">&#9888; Data anomaly: $0.008/kWh likely erroneous (actual ~$0.15-0.18)</span>` : '';
   const siteStr = c.siteProfit > 0 ? '$' + Math.round(c.siteProfit).toLocaleString() : '-$' + Math.round(Math.abs(c.siteProfit)).toLocaleString();
+  const revStr = '$' + Math.round(c.revenue).toLocaleString();
   ttEl.innerHTML = `<h3>${s.n} (${s.c})</h3>${warn}
     <dl class="tt-grid">
       <dt>Energy Cost</dt><dd>$${s.e.toFixed(3)}/kWh</dd>
       <dt>Selling Price</dt><dd>$${s.p.toFixed(2)}/kWh</dd>
+      <dt>Billed to Driver</dt><dd>$${(s.p * ENERGY_LOSS).toFixed(3)}/kWh <small style="color:var(--text-muted)">(${Math.round(ENERGY_LOSS*100)}% of grid)</small></dd>
       <dt>Utilization</dt><dd>${s.u.toFixed(0)} kWh/post/day</dd>
-      <dt>Gross Margin</dt><dd class="${c.margin>0.15?'pos':c.margin<0.05?'neg':''}">$${c.margin.toFixed(3)}/kWh</dd>
+      <dt>Net Margin</dt><dd class="${c.margin>0.10?'pos':c.margin<0.03?'neg':''}">$${c.margin.toFixed(3)}/kWh</dd>
+      <dt>Revenue/Post/Yr</dt><dd>${revStr}</dd>
       <dt>Profit/Post/Yr</dt><dd class="${c.profit>15000?'pos':c.profit<5000?'neg':''}">${profStr}</dd>
       <dt>Cost/Post</dt><dd>$${Math.round(c.cost).toLocaleString()}</dd>
       <dt>Site Investment</dt><dd>$${Math.round(c.siteInvest).toLocaleString()}</dd>
@@ -582,11 +603,10 @@ function updateCabBadge() {
 
 // ===== 15-YEAR PROJECTION CHART =====
 let projChart = null;
-const GROWTH_RATE = 0.07;
 
 function initChartSelect() {
   const sel = document.getElementById('chartState');
-  if (sel.options.length > 0) return; // already populated
+  if (sel.options.length > 0) return;
   const sorted = Object.values(SD).map(s => s).sort((a, b) => a.c.localeCompare(b.c));
   sorted.forEach(s => {
     const opt = document.createElement('option');
@@ -604,21 +624,23 @@ function renderChart() {
   const s = SD[fips];
   if (!s) return;
 
-  const c = calc(s);
   const years = [];
   const cumProfit = [];
+  const annualNet = [];
   const investLine = [];
+  const totalInvest = costPerPost() * postCount;
   let cumul = 0;
-  const totalInvest = c.cost * postCount;
 
+  // Exact Tesla server-side formula
   for (let yr = 0; yr <= 15; yr++) {
     years.push('Yr ' + yr);
     if (yr === 0) {
       cumul = -totalInvest;
+      annualNet.push(0);
     } else {
-      const growthMult = Math.pow(1 + GROWTH_RATE, yr - 1);
-      const yrProfit = c.profit * postCount * growthMult;
-      cumul += yrProfit;
+      const y = calcYear(s, yr, postCount);
+      cumul += y.net;
+      annualNet.push(Math.round(y.net));
     }
     cumProfit.push(Math.round(cumul));
     investLine.push(0);
