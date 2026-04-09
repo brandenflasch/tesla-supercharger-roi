@@ -9,6 +9,7 @@
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
 <script src="https://cdn.jsdelivr.net/npm/d3@7"></script>
 <script src="https://cdn.jsdelivr.net/npm/topojson-client@3"></script>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4/dist/chart.umd.min.js"></script>
 <style>
 :root {
   --font-body: 'Sora', system-ui, sans-serif;
@@ -62,6 +63,10 @@ body {
 .header { text-align: center; margin-bottom: 28px; }
 .header h1 { font-size: 26px; font-weight: 700; letter-spacing: -0.5px; margin-bottom: 4px; }
 .header .sub { font-family: var(--font-mono); font-size: 12px; color: var(--text-dim); }
+.byline { font-size: 12px; color: var(--text-dim); margin-top: 8px; }
+.socials { display: flex; justify-content: center; gap: 14px; margin-top: 6px; }
+.socials a { color: var(--text-dim); transition: color 0.15s, transform 0.15s; display: flex; align-items: center; }
+.socials a:hover { color: var(--accent); transform: scale(1.15); }
 
 /* KPIs */
 .kpi-bar { display: grid; grid-template-columns: repeat(auto-fit, minmax(155px,1fr)); gap: 12px; margin-bottom: 20px; }
@@ -118,15 +123,45 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .rpanel h3 { font-family: var(--font-mono); font-size: 10px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); margin-bottom: 8px; display: flex; align-items: center; gap: 6px; }
 .rpanel h3 .dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
 .rlist { list-style: none; }
-.rlist li { display: flex; align-items: center; gap: 6px; padding: 5px 3px; border-bottom: 1px solid var(--border); font-size: 11px; cursor: pointer; border-radius: 3px; }
+.rlist li { display: flex; align-items: center; gap: 5px; padding: 3px; border-bottom: 1px solid var(--border); font-size: 11px; cursor: pointer; border-radius: 3px; position: relative; overflow: hidden; }
 .rlist li:last-child { border-bottom: none; }
 .rlist li:hover { background: var(--surface2); }
-.rn { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); width: 16px; text-align: right; flex-shrink: 0; }
-.rs { font-weight: 600; width: 26px; flex-shrink: 0; font-size: 11px; }
-.rb-w { flex: 1; height: 5px; background: var(--surface3); border-radius: 3px; overflow: hidden; }
-.rb { height: 100%; border-radius: 3px; }
-.rv { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); min-width: 52px; text-align: right; }
-.rv small { font-size: 9px; color: var(--text-muted); display: block; }
+.rn { font-family: var(--font-mono); font-size: 9px; color: var(--text-muted); width: 14px; text-align: right; flex-shrink: 0; }
+.rs { font-weight: 600; width: 24px; flex-shrink: 0; font-size: 11px; }
+.rb-bg { position: absolute; left: 0; top: 0; bottom: 0; opacity: 0.12; border-radius: 3px; pointer-events: none; transition: width 0.4s ease; }
+.rv { font-family: var(--font-mono); font-size: 10px; color: var(--text-dim); margin-left: auto; text-align: right; white-space: nowrap; }
+.rv small { font-size: 9px; color: var(--text-muted); margin-left: 6px; }
+
+/* Chart Section */
+.chart-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; }
+.chart-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 4px; }
+.chart-header { display: flex; justify-content: space-between; align-items: center; flex-wrap: wrap; gap: 10px; margin-bottom: 14px; }
+.chart-controls { display: flex; align-items: center; gap: 8px; font-family: var(--font-mono); font-size: 11px; color: var(--text-dim); }
+.chart-controls select { background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 6px; padding: 4px 8px; font-family: var(--font-body); font-size: 12px; cursor: pointer; }
+.chart-box { position: relative; height: 280px; }
+.chart-box canvas { width: 100% !important; height: 100% !important; }
+.cab-badge { background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 10px; font-weight: 600; padding: 3px 8px; border-radius: 5px; }
+
+/* Data Table Section */
+.table-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; }
+.table-section h2 { font-size: 16px; font-weight: 600; margin-bottom: 14px; }
+.table-scroll { overflow-x: auto; -webkit-overflow-scrolling: touch; }
+.dtable { width: 100%; border-collapse: collapse; font-size: 12px; line-height: 1.4; }
+.dtable th { background: var(--surface2); font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.8px; color: var(--text-dim); text-align: left; padding: 10px 12px; border-bottom: 2px solid var(--border-bright); white-space: nowrap; position: sticky; top: 0; z-index: 2; cursor: pointer; user-select: none; }
+.dtable th.num { text-align: right; }
+.dtable th:hover { color: var(--accent); }
+.dtable th.sorted-asc::after { content: ' ▲'; font-size: 8px; }
+.dtable th.sorted-desc::after { content: ' ▼'; font-size: 8px; }
+.dtable td { padding: 7px 12px; border-bottom: 1px solid var(--border); font-variant-numeric: tabular-nums; }
+.dtable td.num { text-align: right; font-family: var(--font-mono); font-size: 11px; }
+.dtable tbody tr { transition: background 0.1s; }
+.dtable tbody tr:nth-child(even) { background: rgba(255,255,255,0.015); }
+.dtable tbody tr:hover { background: var(--surface2); }
+.dtable .state-cell { font-weight: 600; display: flex; align-items: center; gap: 6px; }
+.dtable .color-dot { width: 8px; height: 8px; border-radius: 50%; flex-shrink: 0; }
+.dtable .anomaly-mark { color: #fbbf24; font-size: 10px; }
+.dtable .pos { color: #10b981; }
+.dtable .neg { color: #ef4444; }
 
 /* Disclaimer */
 .disc { margin-top: 20px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
@@ -144,7 +179,15 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 <div class="page">
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: State-by-State ROI Analysis</h1>
-    <div class="sub">Data from Tesla's Supercharger For Business page &middot; April 2026</div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger For Business page</a> &middot; April 2026</div>
+    <div class="byline">Made by Branden Flasch</div>
+    <div class="socials">
+      <a href="https://bflasch.com" target="_blank" rel="noopener" title="bflasch.com"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>
+      <a href="https://youtube.com/@brandenflasch" target="_blank" rel="noopener" title="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
+      <a href="https://x.com/brandenflasch" target="_blank" rel="noopener" title="X"><svg width="16" height="16" viewBox="0 0 24 24" fill="currentColor"><path d="M18.244 2.25h3.308l-7.227 8.26 8.502 11.24H16.17l-5.214-6.817L4.99 21.75H1.68l7.73-8.835L1.254 2.25H8.08l4.713 6.231zm-1.161 17.52h1.833L7.084 4.126H5.117z"/></svg></a>
+      <a href="https://www.linkedin.com/in/bflasch/" target="_blank" rel="noopener" title="LinkedIn"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M20.447 20.452h-3.554v-5.569c0-1.328-.027-3.037-1.852-3.037-1.853 0-2.136 1.445-2.136 2.939v5.667H9.351V9h3.414v1.561h.046c.477-.9 1.637-1.85 3.37-1.85 3.601 0 4.267 2.37 4.267 5.455v6.286zM5.337 7.433a2.062 2.062 0 0 1-2.063-2.065 2.064 2.064 0 1 1 2.063 2.065zm1.782 13.019H3.555V9h3.564v11.452zM22.225 0H1.771C.792 0 0 .774 0 1.729v20.542C0 23.227.792 24 1.771 24h20.451C23.2 24 24 23.227 24 22.271V1.729C24 .774 23.2 0 22.222 0h.003z"/></svg></a>
+      <a href="https://github.com/brandenflasch" target="_blank" rel="noopener" title="GitHub"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M12 .297c-6.63 0-12 5.373-12 12 0 5.303 3.438 9.8 8.205 11.385.6.113.82-.258.82-.577 0-.285-.01-1.04-.015-2.04-3.338.724-4.042-1.61-4.042-1.61C4.422 18.07 3.633 17.7 3.633 17.7c-1.087-.744.084-.729.084-.729 1.205.084 1.838 1.236 1.838 1.236 1.07 1.835 2.809 1.305 3.495.998.108-.776.417-1.305.76-1.605-2.665-.3-5.466-1.332-5.466-5.93 0-1.31.465-2.38 1.235-3.22-.135-.303-.54-1.523.105-3.176 0 0 1.005-.322 3.3 1.23.96-.267 1.98-.399 3-.405 1.02.006 2.04.138 3 .405 2.28-1.552 3.285-1.23 3.285-1.23.645 1.653.24 2.873.12 3.176.765.84 1.23 1.91 1.23 3.22 0 4.61-2.805 5.625-5.475 5.92.42.36.81 1.096.81 2.22 0 1.606-.015 2.896-.015 3.286 0 .315.21.69.825.57C20.565 22.092 24 17.592 24 12.297c0-6.627-5.373-12-12-12"/></svg></a>
+    </div>
   </div>
 
   <div class="kpi-bar">
@@ -167,15 +210,51 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <div class="legend anim" style="--i:7" id="leg"></div>
     </div>
     <div class="sidebar">
-      <div class="rpanel anim" style="--i:8"><h3><span class="dot" style="background:#10b981"></span> Top 10 &mdash; Best ROI</h3><ol class="rlist" id="topL"></ol></div>
-      <div class="rpanel anim" style="--i:9"><h3><span class="dot" style="background:#ef4444"></span> Bottom 10 &mdash; Worst ROI</h3><ol class="rlist" id="botL"></ol></div>
+      <div class="rpanel anim" style="--i:8"><h3><span class="dot" style="background:#10b981"></span> <span id="topTitle">Top 10 &mdash; Best ROI</span></h3><ol class="rlist" id="topL"></ol></div>
+      <div class="rpanel anim" style="--i:9"><h3><span class="dot" style="background:#ef4444"></span> <span id="botTitle">Bottom 10 &mdash; Worst ROI</span></h3><ol class="rlist" id="botL"></ol></div>
     </div>
   </div>
 
-  <div class="disc anim" style="--i:10">
+  <!-- 15-Year Projection Chart -->
+  <div class="chart-section anim" style="--i:11">
+    <div class="chart-header">
+      <h2>15-Year Cumulative Profit Projection</h2>
+      <div class="chart-controls">
+        <label>State:</label>
+        <select id="chartState"></select>
+        <span id="cabCount" class="cab-badge"></span>
+      </div>
+    </div>
+    <div class="chart-box"><canvas id="projChart"></canvas></div>
+  </div>
+
+  <!-- Full Sortable Data Table -->
+  <div class="table-section anim" style="--i:12">
+    <h2>All 51 Jurisdictions</h2>
+    <div class="table-scroll">
+      <table class="dtable" id="dataTable">
+        <thead><tr>
+          <th data-col="c" class="sortable">State</th>
+          <th data-col="e" class="sortable num">Utility Rate</th>
+          <th data-col="p" class="sortable num">Sell Rate</th>
+          <th data-col="u" class="sortable num">Utilization</th>
+          <th data-col="margin" class="sortable num">Margin</th>
+          <th data-col="profit" class="sortable num">Profit/Post/Yr</th>
+          <th data-col="payback" class="sortable num">Payback</th>
+          <th data-col="siteInvest" class="sortable num">Site Investment</th>
+          <th data-col="siteProfit" class="sortable num">Site Profit/Yr</th>
+        </tr></thead>
+        <tbody id="dtBody"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <div class="disc anim" style="--i:13">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     Assumes 7% YoY utilization growth, ~15% energy loss grid-to-vehicle, no parking rent, excludes hardware taxes.
     <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
+    <a href="#" id="fixMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use $0.15/kWh for Maine</a>
+    <span id="maineFixed" style="display:none;color:#10b981;margin-left:4px;">&#10003; Maine set to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Revert</a></span>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -405,19 +484,57 @@ function hideTT() { ttEl.classList.remove('show'); }
 
 // ===== RANKINGS =====
 function rankings() {
-  const all = Object.values(SD).map(s => ({ ...s, ...calc(s) })).sort((a,b) => a.payback - b.payback);
-  const maxP = Math.max(...all.map(s => s.profit));
+  const all = Object.values(SD).map(s => ({ ...s, ...calc(s) }));
+
+  // Sort based on active metric (best first)
+  if (metric === 'payback') all.sort((a, b) => a.payback - b.payback);
+  else if (metric === 'profit') all.sort((a, b) => b.profit - a.profit);
+  else if (metric === 'margin') all.sort((a, b) => b.margin - a.margin);
+  else if (metric === 'util') all.sort((a, b) => b.u - a.u);
+  else if (metric === 'energy') all.sort((a, b) => a.e - b.e); // lower is better
+  else if (metric === 'sellrate') all.sort((a, b) => b.p - a.p);
+
+  // Format the primary value for display based on metric
+  function fmtVal(s) {
+    if (metric === 'payback') return { main: (s.payback > 100 ? '100+' : s.payback.toFixed(1)) + ' yr', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
+    if (metric === 'profit') return { main: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr', sub: s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr' };
+    if (metric === 'margin') return { main: '$' + s.margin.toFixed(3) + '/kWh', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
+    if (metric === 'util') return { main: s.u.toFixed(0) + ' kWh/d', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
+    if (metric === 'energy') return { main: '$' + s.e.toFixed(3) + '/kWh', sub: s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr' };
+    if (metric === 'sellrate') return { main: '$' + s.p.toFixed(2) + '/kWh', sub: (s.profit > 0 ? '$' : '-$') + (Math.abs(s.profit)/1000).toFixed(1) + 'K/yr' };
+  }
+
+  // Bar % based on metric
+  function barPct(s, isTop) {
+    if (metric === 'payback') return isTop ? Math.max(2, (1 - s.payback / all[all.length-1].payback) * 100) : Math.max(2, Math.min(100, (s.payback / 100) * 100));
+    if (metric === 'profit') { const mx = Math.max(...all.map(x => Math.abs(x.profit))); return Math.max(2, (Math.abs(s.profit) / mx) * 100); }
+    if (metric === 'margin') { const mx = Math.max(...all.map(x => Math.abs(x.margin))); return Math.max(2, (Math.abs(s.margin) / mx) * 100); }
+    if (metric === 'util') { const mx = Math.max(...all.map(x => x.u)); return Math.max(2, (s.u / mx) * 100); }
+    if (metric === 'energy') { const mx = Math.max(...all.map(x => x.e)); return Math.max(2, (s.e / mx) * 100); }
+    if (metric === 'sellrate') { const mx = Math.max(...all.map(x => x.p)); return Math.max(2, (s.p / mx) * 100); }
+  }
 
   const mkList = (arr, el, isTop) => {
     el.innerHTML = arr.map((s, i) => {
-      const pct = isTop ? Math.max(2, (s.profit / maxP) * 100) : Math.max(2, Math.min(100, (s.payback / 100) * 100));
-      const pb = s.payback > 100 ? '100+' : s.payback.toFixed(1);
-      const prof = s.profit > 0 ? '$' + (s.profit/1000).toFixed(1) + 'K' : '-$' + (Math.abs(s.profit)/1000).toFixed(1) + 'K';
-      const bg = isTop ? colors.excellent : colors.poor;
+      const pct = barPct(s, isTop);
+      const v = fmtVal(s);
+      const bg = getColor(s);
       const num = isTop ? i + 1 : all.length - arr.length + i + 1;
-      return `<li data-code="${s.c}"><span class="rn">${num}</span><span class="rs">${s.c}${s.a?'*':''}</span><span class="rb-w"><span class="rb" style="width:${pct}%;background:${bg}"></span></span><span class="rv">${pb} yr<small>${prof}/yr</small></span></li>`;
+      return `<li data-code="${s.c}"><span class="rb-bg" style="width:${pct}%;background:${bg}"></span><span class="rn">${num}</span><span class="rs" style="color:${bg}">${s.c}${s.a?'*':''}</span><span class="rv" style="color:${bg}">${v.main}<small>${v.sub}</small></span></li>`;
     }).join('');
   };
+
+  const titles = {
+    payback: ['Best ROI', 'Worst ROI'],
+    profit: ['Highest Profit', 'Lowest Profit'],
+    margin: ['Best Margin', 'Worst Margin'],
+    util: ['Highest Utilization', 'Lowest Utilization'],
+    energy: ['Cheapest Power', 'Most Expensive Power'],
+    sellrate: ['Highest Sell Rate', 'Lowest Sell Rate']
+  };
+  const [topT, botT] = titles[metric] || titles.payback;
+  document.getElementById('topTitle').innerHTML = `Top 10 &mdash; ${topT}`;
+  document.getElementById('botTitle').innerHTML = `Bottom 10 &mdash; ${botT}`;
 
   mkList(all.slice(0, 10), document.getElementById('topL'), true);
   mkList(all.slice(-10).reverse(), document.getElementById('botL'), false);
@@ -457,12 +574,205 @@ function legend() {
   ).join('');
 }
 
+// ===== CABINET COUNT =====
+function updateCabBadge() {
+  const cabs = Math.ceil(postCount / 8);
+  document.getElementById('cabCount').textContent = cabs + ' cabinet' + (cabs !== 1 ? 's' : '') + ' (' + postCount + ' posts)';
+}
+
+// ===== 15-YEAR PROJECTION CHART =====
+let projChart = null;
+const GROWTH_RATE = 0.07;
+
+function initChartSelect() {
+  const sel = document.getElementById('chartState');
+  if (sel.options.length > 0) return; // already populated
+  const sorted = Object.values(SD).map(s => s).sort((a, b) => a.c.localeCompare(b.c));
+  sorted.forEach(s => {
+    const opt = document.createElement('option');
+    opt.value = s.c;
+    opt.textContent = s.n + ' (' + s.c + ')';
+    if (s.c === 'NC') opt.selected = true;
+    sel.appendChild(opt);
+  });
+  sel.addEventListener('change', () => renderChart());
+}
+
+function renderChart() {
+  const code = document.getElementById('chartState').value;
+  const fips = codeToFips[code];
+  const s = SD[fips];
+  if (!s) return;
+
+  const c = calc(s);
+  const years = [];
+  const cumProfit = [];
+  const investLine = [];
+  let cumul = 0;
+  const totalInvest = c.cost * postCount;
+
+  for (let yr = 0; yr <= 15; yr++) {
+    years.push('Yr ' + yr);
+    if (yr === 0) {
+      cumul = -totalInvest;
+    } else {
+      const growthMult = Math.pow(1 + GROWTH_RATE, yr - 1);
+      const yrProfit = c.profit * postCount * growthMult;
+      cumul += yrProfit;
+    }
+    cumProfit.push(Math.round(cumul));
+    investLine.push(0);
+  }
+
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const textColor = isDark ? '#8b949e' : '#6b7280';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+
+  if (projChart) projChart.destroy();
+
+  projChart = new Chart(document.getElementById('projChart'), {
+    type: 'line',
+    data: {
+      labels: years,
+      datasets: [
+        {
+          label: 'Cumulative Profit',
+          data: cumProfit,
+          borderColor: cumProfit.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+          backgroundColor: (ctx) => {
+            const chart = ctx.chart;
+            const {ctx: c2, chartArea} = chart;
+            if (!chartArea) return 'rgba(16,185,129,0.1)';
+            const grad = c2.createLinearGradient(0, chartArea.top, 0, chartArea.bottom);
+            grad.addColorStop(0, 'rgba(16,185,129,0.15)');
+            grad.addColorStop(0.5, 'rgba(16,185,129,0.02)');
+            grad.addColorStop(1, 'rgba(239,68,68,0.08)');
+            return grad;
+          },
+          fill: true,
+          borderWidth: 2.5,
+          pointRadius: 3,
+          pointBackgroundColor: cumProfit.map(v => v >= 0 ? '#10b981' : '#ef4444'),
+          tension: 0.3,
+          segment: {
+            borderColor: ctx => cumProfit[ctx.p1DataIndex] >= 0 ? '#10b981' : '#ef4444'
+          }
+        },
+        {
+          label: 'Break Even',
+          data: investLine,
+          borderColor: textColor,
+          borderDash: [5, 5],
+          borderWidth: 1,
+          pointRadius: 0,
+          fill: false
+        }
+      ]
+    },
+    options: {
+      responsive: true,
+      maintainAspectRatio: false,
+      interaction: { intersect: false, mode: 'index' },
+      plugins: {
+        legend: { display: false },
+        tooltip: {
+          callbacks: {
+            label: function(ctx) {
+              if (ctx.datasetIndex === 1) return null;
+              const v = ctx.parsed.y;
+              const sign = v >= 0 ? '+' : '';
+              return sign + '$' + Math.abs(v).toLocaleString();
+            }
+          }
+        }
+      },
+      scales: {
+        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 } }, grid: { color: gridColor } },
+        y: {
+          ticks: {
+            color: textColor,
+            font: { family: "'IBM Plex Mono', monospace", size: 10 },
+            callback: v => (v >= 0 ? '$' : '-$') + (Math.abs(v) >= 1000000 ? (Math.abs(v)/1000000).toFixed(1) + 'M' : (Math.abs(v)/1000).toFixed(0) + 'K')
+          },
+          grid: { color: gridColor }
+        }
+      }
+    }
+  });
+
+  updateCabBadge();
+}
+
+// ===== SORTABLE DATA TABLE =====
+let sortCol = 'payback';
+let sortDir = 'asc';
+
+function renderTable() {
+  const all = Object.values(SD).map(s => ({ ...s, ...calc(s) }));
+
+  // Sort
+  all.sort((a, b) => {
+    let va, vb;
+    if (sortCol === 'c') { va = a.c; vb = b.c; return sortDir === 'asc' ? va.localeCompare(vb) : vb.localeCompare(va); }
+    if (sortCol === 'e') { va = a.e; vb = b.e; }
+    else if (sortCol === 'p') { va = a.p; vb = b.p; }
+    else if (sortCol === 'u') { va = a.u; vb = b.u; }
+    else if (sortCol === 'margin') { va = a.margin; vb = b.margin; }
+    else if (sortCol === 'profit') { va = a.profit; vb = b.profit; }
+    else if (sortCol === 'payback') { va = a.payback; vb = b.payback; }
+    else if (sortCol === 'siteInvest') { va = a.siteInvest; vb = b.siteInvest; }
+    else if (sortCol === 'siteProfit') { va = a.siteProfit; vb = b.siteProfit; }
+    else { va = a.payback; vb = b.payback; }
+    return sortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  const tbody = document.getElementById('dtBody');
+  tbody.innerHTML = all.map(s => {
+    const color = getColor(s);
+    const pb = s.payback > 100 ? '100+' : s.payback.toFixed(1);
+    const prof = s.profit > 0 ? '$' + Math.round(s.profit).toLocaleString() : '-$' + Math.round(Math.abs(s.profit)).toLocaleString();
+    const sProf = s.siteProfit > 0 ? '$' + Math.round(s.siteProfit).toLocaleString() : '-$' + Math.round(Math.abs(s.siteProfit)).toLocaleString();
+    const anomaly = s.a ? ' <span class="anomaly-mark">&#9888;</span>' : '';
+    const profClass = s.profit > 15000 ? 'pos' : s.profit < 5000 ? 'neg' : '';
+    const sProfClass = s.siteProfit > 100000 ? 'pos' : s.siteProfit < 40000 ? 'neg' : '';
+    return `<tr>
+      <td><div class="state-cell"><span class="color-dot" style="background:${color}"></span>${s.c}${anomaly}</div></td>
+      <td class="num">$${s.e.toFixed(3)}</td>
+      <td class="num">$${s.p.toFixed(2)}</td>
+      <td class="num">${s.u.toFixed(0)}</td>
+      <td class="num ${s.margin > 0.15 ? 'pos' : s.margin < 0.05 ? 'neg' : ''}">$${s.margin.toFixed(3)}</td>
+      <td class="num ${profClass}">${prof}</td>
+      <td class="num">${pb} yr</td>
+      <td class="num">$${Math.round(s.siteInvest).toLocaleString()}</td>
+      <td class="num ${sProfClass}">${sProf}</td>
+    </tr>`;
+  }).join('');
+
+  // Update sort indicators
+  document.querySelectorAll('.dtable th').forEach(th => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (th.dataset.col === sortCol) th.classList.add('sorted-' + sortDir);
+  });
+}
+
+// Table sort click handlers
+document.querySelectorAll('.dtable th.sortable').forEach(th => {
+  th.addEventListener('click', () => {
+    const col = th.dataset.col;
+    if (sortCol === col) { sortDir = sortDir === 'asc' ? 'desc' : 'asc'; }
+    else { sortCol = col; sortDir = col === 'c' ? 'asc' : 'asc'; }
+    renderTable();
+  });
+});
+
 // ===== RENDER ALL =====
 function renderAll() {
   drawMap();
   rankings();
   kpis();
   legend();
+  renderChart();
+  renderTable();
 }
 
 // ===== CONTROLS =====
@@ -501,11 +811,33 @@ document.getElementById('customPosts').addEventListener('input', e => {
 });
 
 
+// ===== MAINE FIX =====
+const MAINE_ORIGINAL = 0.008;
+document.getElementById('fixMaine').addEventListener('click', e => {
+  e.preventDefault();
+  SD["23"].e = 0.15;
+  SD["23"].a = false;
+  document.getElementById('fixMaine').style.display = 'none';
+  document.getElementById('maineFixed').style.display = 'inline';
+  renderAll();
+});
+document.getElementById('revertMaine').addEventListener('click', e => {
+  e.preventDefault();
+  SD["23"].e = MAINE_ORIGINAL;
+  SD["23"].a = true;
+  document.getElementById('fixMaine').style.display = 'inline';
+  document.getElementById('maineFixed').style.display = 'none';
+  renderAll();
+});
+
 // ===== INIT =====
+initChartSelect();
 loadMap().then(() => {
   rankings();
   kpis();
   legend();
+  renderChart();
+  renderTable();
 });
 </script>
 </body>
