@@ -163,6 +163,17 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .dtable .pos { color: #10b981; }
 .dtable .neg { color: #ef4444; }
 
+/* Availability (world) section */
+.avail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
+.avail-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.avail-head h2 { font-size: 16px; font-weight: 600; }
+.avail-count { background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
+.avail-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; max-width: 780px; }
+#worldMap svg { width: 100%; height: auto; display: block; }
+.country-path { stroke: var(--border-bright); stroke-width: 0.4; transition: filter 0.12s, stroke-width 0.12s; }
+.country-path.avail { cursor: pointer; }
+.country-path.avail:hover { filter: brightness(1.25); stroke: var(--text); stroke-width: 0.8; }
+
 /* Disclaimer */
 .disc { margin-top: 20px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
 .disc strong { color: var(--text); }
@@ -190,6 +201,21 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     </div>
   </div>
 
+  <!-- Global Availability Map -->
+  <div class="avail-section anim" style="--i:1">
+    <div class="avail-head">
+      <h2>Where Supercharger for Business Is Available</h2>
+      <span class="avail-count" id="availCount">8 countries</span>
+    </div>
+    <div class="avail-sub">Launched in the U.S. (Sept 2025), now expanded to seven more countries across Europe &amp; the Middle East. The interactive ROI calculator below is currently U.S.-only &mdash; the other markets have the program but not the self-serve estimator yet.</div>
+    <div class="map-box"><div id="worldMap"></div></div>
+    <div class="legend" style="margin-top:12px">
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; Available + ROI calculator</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Available (program live)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not yet available</div>
+    </div>
+  </div>
+
   <div class="kpi-bar">
     <div class="kpi anim-s" style="--i:1"><div class="kpi__val kpi__val--accent" id="kpi-med">--</div><div class="kpi__label">Median Payback</div></div>
     <div class="kpi anim-s" style="--i:2"><div class="kpi__val kpi__val--green" id="kpi-best">--</div><div class="kpi__label">Best State</div></div>
@@ -201,7 +227,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     <div class="cg"><label>Color By</label><select id="selMetric"><option value="payback" selected>Payback Period</option><option value="profit">Annual Profit / Post</option><option value="margin">Gross Margin $/kWh</option><option value="util">Utilization kWh/day</option><option value="energy">Utility Rate $/kWh</option><option value="sellrate">Sell Rate $/kWh</option></select></div>
     <div class="cg"><label>Installation Cost</label><select id="selInstall"><option value="45000">Low ($45K)</option><option value="55000" selected>Medium ($55K)</option><option value="65000">High ($65K)</option><option value="custom">Custom</option></select><input type="number" id="customInstall" style="display:none;width:100px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="$/post" value="55000"></div>
     <div class="cg"><label>Post Count</label><select id="selPosts"><option value="4">4 Posts</option><option value="8" selected>8 Posts</option><option value="16">16 Posts</option><option value="24">24 Posts</option><option value="custom">Custom</option></select><input type="number" id="customPosts" style="display:none;width:80px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="# posts" min="1" value="8"></div>
-    <div class="cg"><label>Tesla PPU Fee</label><div class="sv" style="padding-top:4px">$0.10/kWh (fixed)</div></div>
+    <div class="cg"><label>Tesla PPU Fee</label><div class="sv" id="ppuFee" style="padding-top:4px">$0.10/kWh (fixed)</div></div>
+    <div class="cg"><label>Display Currency</label><select id="selCurrency"></select><div class="sv" id="fxNote" style="text-align:left;min-width:0;margin-top:3px;color:var(--text-muted)">Base currency</div></div>
   </div>
 
   <div class="main">
@@ -332,13 +359,50 @@ const TESLA_FEE_ESC = 0.03;    // 3% annual escalation on Tesla fee
 const UTIL_GROWTH = 0.07;      // 7% YoY utilization growth
 let metric = 'payback';
 
-// Format dollar values — negative shown as ($X,XXX) in red
-function fmtDollar(v, decimals) {
+// ===== CURRENCY =====
+// All model math runs in USD; these helpers convert + symbolize at display time.
+// Gulf currencies (SAR/AED/QAR/JOD) are USD-pegged, so the static fallbacks are exact.
+const CURRENCIES = {
+  USD: { symbol: '$',    label: 'USD — US Dollar' },
+  EUR: { symbol: '€',    label: 'EUR — Euro' },
+  GBP: { symbol: '£',    label: 'GBP — British Pound' },
+  CAD: { symbol: 'CA$',  label: 'CAD — Canadian Dollar' },
+  SAR: { symbol: 'SAR ', label: 'SAR — Saudi Riyal' },
+  AED: { symbol: 'AED ', label: 'AED — UAE Dirham' },
+  QAR: { symbol: 'QAR ', label: 'QAR — Qatari Riyal' },
+  JOD: { symbol: 'JOD ', label: 'JOD — Jordanian Dinar' }
+};
+const FX_FALLBACK = { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.37, SAR: 3.75, AED: 3.67, QAR: 3.64, JOD: 0.709 };
+const fxRates = { USD: 1 };
+let currency = 'USD';
+let fxRate = 1;            // USD -> selected currency
+let fxLive = false;       // true once a live rate is fetched
+let fxAsOf = null;        // timestamp string from API
+
+function curSymbol() { return CURRENCIES[currency].symbol; }
+
+// Format a USD amount in the active currency — negatives shown as (sym X,XXX)
+function fmtDollar(vUSD, decimals) {
+  const v = vUSD * fxRate;
   const abs = Math.abs(v);
+  const sym = curSymbol();
   let str;
-  if (decimals !== undefined) str = '$' + abs.toFixed(decimals);
-  else str = '$' + Math.round(abs).toLocaleString();
+  if (decimals !== undefined) str = sym + abs.toFixed(decimals);
+  else str = sym + Math.round(abs).toLocaleString();
   return v < 0 ? '(' + str + ')' : str;
+}
+
+// Per-kWh style rate (no thousands separator, no paren wrapping)
+function fmtRate(vUSD, decimals) {
+  return curSymbol() + (vUSD * fxRate).toFixed(decimals === undefined ? 3 : decimals);
+}
+
+// Compact axis/tooltip money: sym1.2M / sym340K, leading minus for negatives
+function fmtMoneyShort(vUSD) {
+  const v = vUSD * fxRate;
+  const a = Math.abs(v);
+  const body = a >= 1e6 ? (a / 1e6).toFixed(1) + 'M' : (a / 1e3).toFixed(0) + 'K';
+  return (v < 0 ? '-' : '') + curSymbol() + body;
 }
 
 function costPerPost() { return HW_PER_POST + installPerPost; }
@@ -496,18 +560,18 @@ function showTT(ev, s) {
   const feeStr = fmtDollar(c.feePerPost);
   ttEl.innerHTML = `<h3>${s.n} (${s.c})</h3>${warn}
     <dl class="tt-grid">
-      <dt>Energy Cost</dt><dd>$${s.e.toFixed(3)}/kWh</dd>
-      <dt>Selling Price</dt><dd>$${s.p.toFixed(2)}/kWh</dd>
-      <dt>Billed to Driver</dt><dd>$${(s.p * ENERGY_LOSS).toFixed(3)}/kWh <small style="color:var(--text-muted)">(${Math.round(ENERGY_LOSS*100)}% of grid)</small></dd>
+      <dt>Energy Cost</dt><dd>${fmtRate(s.e, 3)}/kWh</dd>
+      <dt>Selling Price</dt><dd>${fmtRate(s.p, 2)}/kWh</dd>
+      <dt>Billed to Driver</dt><dd>${fmtRate(s.p * ENERGY_LOSS, 3)}/kWh <small style="color:var(--text-muted)">(${Math.round(ENERGY_LOSS*100)}% of grid)</small></dd>
       <dt>Utilization</dt><dd>${s.u.toFixed(0)} kWh/post/day</dd>
-      <dt>Net Margin</dt><dd class="${c.margin>0.10?'pos':c.margin<0.03?'neg':''}">$${c.margin.toFixed(3)}/kWh</dd>
+      <dt>Net Margin</dt><dd class="${c.margin>0.10?'pos':c.margin<0.03?'neg':''}">${fmtRate(c.margin, 3)}/kWh</dd>
       <dt>Revenue/Post/Yr</dt><dd>${revStr}</dd>
       <dt>Profit/Post/Yr</dt><dd class="${c.profit>15000?'pos':c.profit<5000?'neg':''}">${profStr}</dd>
       <dt>Tesla Fee/Post/Yr</dt><dd style="color:var(--roi-marginal)">${feeStr}</dd>
       <dt>Fee % of Revenue</dt><dd style="color:var(--roi-marginal)">${c.feeRevPct.toFixed(1)}%</dd>
       <dt>Fee % of Gross Profit</dt><dd style="color:var(--roi-marginal)">${c.feeProfPct.toFixed(1)}%</dd>
-      <dt>Cost/Post</dt><dd>$${Math.round(c.cost).toLocaleString()}</dd>
-      <dt>Site Investment</dt><dd>$${Math.round(c.siteInvest).toLocaleString()}</dd>
+      <dt>Cost/Post</dt><dd>${fmtDollar(c.cost)}</dd>
+      <dt>Site Investment</dt><dd>${fmtDollar(c.siteInvest)}</dd>
       <dt>Site Profit/Yr</dt><dd class="${c.siteProfit>100000?'pos':c.siteProfit<40000?'neg':''}">${siteStr}</dd>
     </dl>
     <div class="tt-pb" style="color:${getColor(s)}">${postCount} posts &middot; Payback: ${pbStr}</div>`;
@@ -535,7 +599,7 @@ function rankings() {
   else if (metric === 'sellrate') all.sort((a, b) => b.p - a.p);
 
   // Format the primary value for display based on metric
-  function fmtK(v) { return v < 0 ? '(' + '$' + (Math.abs(v)/1000).toFixed(1) + 'K)' : '$' + (v/1000).toFixed(1) + 'K'; }
+  function fmtK(vUSD) { const v = vUSD * fxRate; const sym = curSymbol(); return v < 0 ? '(' + sym + (Math.abs(v)/1000).toFixed(1) + 'K)' : sym + (v/1000).toFixed(1) + 'K'; }
   function fmtVal(s) {
     const profSub = fmtK(s.profit) + '/yr';
     const pbSub = s.payback > 100 ? '100+ yr' : s.payback.toFixed(1) + ' yr';
@@ -543,8 +607,8 @@ function rankings() {
     if (metric === 'profit') return { main: fmtK(s.profit) + '/yr', sub: pbSub };
     if (metric === 'margin') return { main: fmtDollar(s.margin, 3) + '/kWh', sub: profSub };
     if (metric === 'util') return { main: s.u.toFixed(0) + ' kWh/d', sub: profSub };
-    if (metric === 'energy') return { main: '$' + s.e.toFixed(3) + '/kWh', sub: pbSub };
-    if (metric === 'sellrate') return { main: '$' + s.p.toFixed(2) + '/kWh', sub: profSub };
+    if (metric === 'energy') return { main: fmtRate(s.e, 3) + '/kWh', sub: pbSub };
+    if (metric === 'sellrate') return { main: fmtRate(s.p, 2) + '/kWh', sub: profSub };
   }
 
   // Bar % — normalize each state's value relative to the full range
@@ -745,9 +809,9 @@ function renderChart() {
           callbacks: {
             label: function(ctx) {
               if (ctx.datasetIndex === 1) return null;
-              const v = ctx.parsed.y;
-              const sign = v >= 0 ? '+' : '';
-              return sign + '$' + Math.abs(v).toLocaleString();
+              const v = ctx.parsed.y * fxRate;
+              const sign = v >= 0 ? '+' : '-';
+              return sign + curSymbol() + Math.abs(Math.round(v)).toLocaleString();
             }
           }
         }
@@ -758,7 +822,7 @@ function renderChart() {
           ticks: {
             color: textColor,
             font: { family: "'IBM Plex Mono', monospace", size: 10 },
-            callback: v => (v >= 0 ? '$' : '-$') + (Math.abs(v) >= 1000000 ? (Math.abs(v)/1000000).toFixed(1) + 'M' : (Math.abs(v)/1000).toFixed(0) + 'K')
+            callback: v => fmtMoneyShort(v)
           },
           grid: { color: gridColor }
         }
@@ -804,16 +868,16 @@ function renderTable() {
     const sProfClass = s.siteProfit > 100000 ? 'pos' : s.siteProfit < 40000 ? 'neg' : '';
     return `<tr>
       <td><div class="state-cell"><span class="color-dot" style="background:${color}"></span>${s.c}${anomaly}</div></td>
-      <td class="num">$${s.e.toFixed(3)}</td>
-      <td class="num">$${s.p.toFixed(2)}</td>
+      <td class="num">${fmtRate(s.e, 3)}</td>
+      <td class="num">${fmtRate(s.p, 2)}</td>
       <td class="num">${s.u.toFixed(0)}</td>
       <td class="num ${s.margin > 0.10 ? 'pos' : s.margin < 0.03 ? 'neg' : ''}">${fmtDollar(s.margin, 3)}/kWh</td>
       <td class="num ${profClass}">${fmtDollar(s.profit)}</td>
-      <td class="num" style="color:var(--roi-marginal)">$${Math.round(s.feePerPost).toLocaleString()}</td>
+      <td class="num" style="color:var(--roi-marginal)">${fmtDollar(s.feePerPost)}</td>
       <td class="num" style="color:var(--roi-marginal)">${s.feeRevPct.toFixed(1)}%</td>
       <td class="num" style="color:var(--roi-marginal)">${s.feeProfPct.toFixed(1)}%</td>
       <td class="num">${pb} yr</td>
-      <td class="num">$${Math.round(s.siteInvest).toLocaleString()}</td>
+      <td class="num">${fmtDollar(s.siteInvest)}</td>
       <td class="num ${sProfClass}">${fmtDollar(s.siteProfit)}</td>
     </tr>`;
   }).join('');
@@ -900,8 +964,118 @@ document.getElementById('revertMaine').addEventListener('click', e => {
   renderAll();
 });
 
+// ===== GLOBAL AVAILABILITY MAP =====
+// Tesla Supercharger for Business country availability.
+// US launched Sept 2025; expanded to 7 EU/Middle East countries in 2026.
+// Keyed by world-atlas country `name`; `tier` 'calc' = has self-serve ROI calculator.
+const SFB_COUNTRIES = {
+  'United States of America': { label: 'United States',        region: 'North America', tier: 'calc',  note: 'Launched Sept 2025 · ROI calculator live' },
+  'France':                   { label: 'France',               region: 'Europe',        tier: 'avail', note: 'Program available' },
+  'Spain':                    { label: 'Spain',                region: 'Europe',        tier: 'avail', note: 'Program available' },
+  'Italy':                    { label: 'Italy',                region: 'Europe',        tier: 'avail', note: 'Program available' },
+  'Saudi Arabia':             { label: 'Saudi Arabia',         region: 'Middle East',   tier: 'avail', note: 'Program available' },
+  'United Arab Emirates':     { label: 'United Arab Emirates', region: 'Middle East',   tier: 'avail', note: 'Program available' },
+  'Qatar':                    { label: 'Qatar',                region: 'Middle East',   tier: 'avail', note: 'Program available' },
+  'Jordan':                   { label: 'Jordan',               region: 'Middle East',   tier: 'avail', note: 'Program available' }
+};
+// ISO 3166-1 numeric id fallback (in case topojson name differs)
+const SFB_IDS = { '840':'United States of America','250':'France','724':'Spain','380':'Italy','682':'Saudi Arabia','784':'United Arab Emirates','634':'Qatar','400':'Jordan' };
+const TIER_COLOR = { calc: 'var(--accent)', avail: '#10b981' };
+
+function sfbLookup(f) {
+  const name = f.properties && f.properties.name;
+  if (name && SFB_COUNTRIES[name]) return SFB_COUNTRIES[name];
+  const byId = SFB_IDS[String(f.id)];
+  return byId ? SFB_COUNTRIES[byId] : null;
+}
+
+let worldData = null;
+async function loadWorldMap() {
+  const resp = await fetch('https://cdn.jsdelivr.net/npm/world-atlas@2/countries-110m.json');
+  worldData = await resp.json();
+  drawWorldMap();
+}
+
+function drawWorldMap() {
+  if (!worldData) return;
+  const el = document.getElementById('worldMap');
+  el.innerHTML = '';
+  const W = 975, H = 470;
+  const feats = topojson.feature(worldData, worldData.objects.countries).features
+    .filter(f => (f.properties && f.properties.name) !== 'Antarctica');
+  const fc = { type: 'FeatureCollection', features: feats };
+  const projection = d3.geoNaturalEarth1().fitExtent([[8, 8], [W - 8, H - 8]], fc);
+  const path = d3.geoPath(projection);
+  const svg = d3.select('#worldMap').append('svg')
+    .attr('viewBox', `0 0 ${W} ${H}`)
+    .attr('preserveAspectRatio', 'xMidYMid meet');
+  svg.append('g').selectAll('path').data(feats).join('path')
+    .attr('d', path)
+    .attr('class', d => sfbLookup(d) ? 'country-path avail' : 'country-path')
+    .attr('fill', d => { const r = sfbLookup(d); return r ? TIER_COLOR[r.tier] : 'var(--surface3)'; })
+    .on('mouseenter', function(ev, d) { const r = sfbLookup(d); if (!r) return; d3.select(this).raise(); showCountryTT(ev, r); })
+    .on('mousemove', ev => moveTT(ev))
+    .on('mouseleave', () => hideTT());
+}
+
+function showCountryTT(ev, r) {
+  ttEl.innerHTML = `<h3>${r.label}</h3>
+    <dl class="tt-grid">
+      <dt>Region</dt><dd>${r.region}</dd>
+      <dt>Status</dt><dd class="pos">Available</dd>
+    </dl>
+    <div class="tt-pb" style="color:${TIER_COLOR[r.tier]}">${r.note}</div>`;
+  ttEl.classList.add('show');
+  moveTT(ev);
+}
+
+// ===== CURRENCY WIRING =====
+function updateStaticMoney() {
+  const el = document.getElementById('ppuFee');
+  if (el) el.textContent = fmtRate(0.10, 2) + '/kWh (fixed)';
+}
+function updateFxNote() {
+  const el = document.getElementById('fxNote');
+  if (!el) return;
+  if (currency === 'USD') { el.textContent = 'Base currency'; return; }
+  const r = fxRates[currency] != null ? fxRates[currency] : 1;
+  el.textContent = '1 USD = ' + r.toFixed(3) + ' ' + currency + ' · ' + (fxLive ? 'live' : 'approx');
+}
+function setCurrency(c) {
+  currency = c;
+  fxRate = fxRates[c] != null ? fxRates[c] : 1;
+  renderAll();
+  updateStaticMoney();
+  updateFxNote();
+}
+function initCurrencySelect() {
+  const sel = document.getElementById('selCurrency');
+  sel.innerHTML = Object.entries(CURRENCIES)
+    .map(([c, d]) => `<option value="${c}"${c === 'USD' ? ' selected' : ''}>${d.label}</option>`).join('');
+  sel.addEventListener('change', e => setCurrency(e.target.value));
+}
+async function loadFX() {
+  // Seed fallbacks immediately so currency switching works even if the fetch is slow/blocked.
+  for (const [c, v] of Object.entries(FX_FALLBACK)) if (fxRates[c] == null) fxRates[c] = v;
+  try {
+    const r = await fetch('https://open.er-api.com/v6/latest/USD');
+    const j = await r.json();
+    if (j && j.result === 'success' && j.rates) {
+      for (const c of Object.keys(CURRENCIES)) if (j.rates[c] != null) fxRates[c] = j.rates[c];
+      fxLive = true;
+      fxAsOf = j.time_last_update_utc || null;
+    }
+  } catch (e) { fxLive = false; }
+  if (currency !== 'USD') { fxRate = fxRates[currency] || 1; renderAll(); updateStaticMoney(); }
+  updateFxNote();
+}
+
 // ===== INIT =====
 initChartSelect();
+initCurrencySelect();
+updateStaticMoney();
+loadFX();
+loadWorldMap();
 loadMap().then(() => {
   rankings();
   kpis();
