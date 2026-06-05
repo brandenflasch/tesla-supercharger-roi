@@ -3,7 +3,7 @@
 <head>
 <meta charset="UTF-8">
 <meta name="viewport" content="width=device-width, initial-scale=1.0">
-<title>Tesla Supercharger for Business: State-by-State ROI Analysis</title>
+<title>Tesla Supercharger for Business: Global ROI Analysis</title>
 <link rel="preconnect" href="https://fonts.googleapis.com">
 <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
 <link href="https://fonts.googleapis.com/css2?family=Sora:wght@300;400;500;600;700&family=IBM+Plex+Mono:wght@400;500;600&display=swap" rel="stylesheet">
@@ -25,22 +25,34 @@
   --text-muted: #4a5168;
   --accent: #60a5fa;
   --accent-dim: rgba(96,165,250,0.12);
+  --map-stroke: rgba(214,221,233,0.55);
 }
+/* Light palette — applied automatically (OS preference) AND via explicit data-theme="light" */
 @media (prefers-color-scheme: light) {
-  :root {
-    --bg: #f0f2f5;
-    --surface: #ffffff;
-    --surface2: #f5f6f8;
-    --surface3: #ebedf0;
-    --border: rgba(0,0,0,0.07);
-    --border-bright: rgba(0,0,0,0.14);
-    --text: #111827;
-    --text-dim: #6b7280;
-    --text-muted: #9ca3af;
-    --accent: #2563eb;
-    --accent-dim: rgba(37,99,235,0.08);
+  :root:not([data-theme]) {
+    --bg: #f0f2f5; --surface: #ffffff; --surface2: #f5f6f8; --surface3: #ebedf0;
+    --border: rgba(0,0,0,0.07); --border-bright: rgba(0,0,0,0.14);
+    --text: #111827; --text-dim: #6b7280; --text-muted: #9ca3af;
+    --accent: #2563eb; --accent-dim: rgba(37,99,235,0.08);
+    --map-stroke: rgba(60,72,94,0.4);
   }
 }
+:root[data-theme="light"] {
+  --bg: #f0f2f5; --surface: #ffffff; --surface2: #f5f6f8; --surface3: #ebedf0;
+  --border: rgba(0,0,0,0.07); --border-bright: rgba(0,0,0,0.14);
+  --text: #111827; --text-dim: #6b7280; --text-muted: #9ca3af;
+  --accent: #2563eb; --accent-dim: rgba(37,99,235,0.08);
+  --map-stroke: rgba(60,72,94,0.4);
+}
+:root[data-theme="dark"] {
+  --bg: #0c0f14; --surface: #13161d; --surface2: #1a1e28; --surface3: #222733;
+  --border: rgba(255,255,255,0.06); --border-bright: rgba(255,255,255,0.12);
+  --text: #e8ecf4; --text-dim: #7a8194; --text-muted: #4a5168;
+  --accent: #60a5fa; --accent-dim: rgba(96,165,250,0.12);
+  --map-stroke: rgba(214,221,233,0.55);
+}
+.theme-toggle { position: fixed; top: 14px; right: 14px; z-index: 50; width: 34px; height: 34px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border-bright); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .15s, transform .15s; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
+.theme-toggle:hover { border-color: var(--accent); transform: scale(1.08); }
 
 * { margin: 0; padding: 0; box-sizing: border-box; }
 body {
@@ -189,7 +201,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .avail-count { background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
 .avail-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; max-width: 780px; }
 #worldMap svg { width: 100%; height: auto; display: block; }
-.country-path { stroke: rgba(214,221,233,0.62); stroke-width: var(--cw, 0.65); stroke-linejoin: round; transition: filter 0.12s; }
+.country-path { stroke: var(--map-stroke); stroke-width: var(--cw, 0.65); stroke-linejoin: round; transition: filter 0.12s; }
 .country-path.avail { cursor: pointer; }
 .country-path.avail:hover { filter: brightness(1.25); stroke: var(--text); stroke-width: calc(var(--cw, 0.65) * 2.4); }
 
@@ -213,9 +225,10 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 </head>
 <body>
 <div class="page">
+  <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle theme">☀</button>
   <div class="header anim" style="--i:0">
-    <h1>Tesla Supercharger for Business: State-by-State ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> pricing API &middot; 31 live markets</div>
+    <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 31 live markets</div>
     <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;4,&nbsp;2026</span></div>
     <div class="socials">
       <a href="https://bflasch.com" target="_blank" rel="noopener" title="bflasch.com"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>
@@ -829,7 +842,7 @@ function renderChart() {
     investLine.push(0);
   }
 
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = isDarkTheme();
   const textColor = isDark ? '#8b949e' : '#6b7280';
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
 
@@ -1287,7 +1300,7 @@ function renderCompare() {
   const labels = chartRows.map(r => r.n + (r.anomaly ? ' ⚠' : ''));
   const data = chartRows.map(metricVal);
   const barColors = chartRows.map(r => cmpMetric === 'payback' ? cmpPayColor(r.payback) : (r.us ? '#60a5fa' : '#10b981'));
-  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const isDark = isDarkTheme();
   const textColor = isDark ? '#8b949e' : '#6b7280';
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
   const metricLabel = { payback: 'Payback (years)', capexUsd: 'CapEx / stall (USD)', profitUsd: 'Profit / stall / yr (USD)', hwUsd: 'Hardware / stall (USD)', eUsd: 'Energy cost — purchase (USD / kWh)', pUsd: 'Sell price — to driver (USD / kWh)', u: 'Utilization (kWh / stall / day)' }[cmpMetric];
@@ -1333,6 +1346,32 @@ function initCompare() {
       renderCompare();
     });
   });
+}
+
+// ===== THEME =====
+function isDarkTheme() {
+  const t = document.documentElement.getAttribute('data-theme');
+  if (t) return t === 'dark';
+  return window.matchMedia('(prefers-color-scheme: dark)').matches;
+}
+function applyTheme(t) {
+  document.documentElement.setAttribute('data-theme', t);
+  const b = document.getElementById('themeToggle');
+  if (b) b.textContent = t === 'dark' ? '☀' : '🌙';
+}
+function toggleTheme() {
+  const next = isDarkTheme() ? 'light' : 'dark';
+  try { localStorage.setItem('sfb-theme', next); } catch (e) {}
+  applyTheme(next);
+  renderChart();      // Chart.js bakes colors at render — refresh on theme change
+  renderCompare();
+}
+function initTheme() {
+  let stored = null;
+  try { stored = localStorage.getItem('sfb-theme'); } catch (e) {}
+  if (stored) applyTheme(stored);
+  const b = document.getElementById('themeToggle');
+  if (b) { b.textContent = isDarkTheme() ? '☀' : '🌙'; b.addEventListener('click', toggleTheme); }
 }
 
 // ===== CURRENCY WIRING =====
@@ -1392,6 +1431,7 @@ async function loadFX() {
 })();
 
 // ===== INIT =====
+initTheme();
 initChartSelect();
 initCurrencySelect();
 initCompare();
