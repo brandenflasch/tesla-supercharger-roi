@@ -271,19 +271,17 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
         <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
       </div>
+      <div class="controls" style="margin-bottom:16px">
+        <div class="cg"><label>Color By</label><select id="mapMetricSel"><option value="tier" selected>Availability</option><option value="payback">Payback Period</option><option value="profit">Profit / Stall / Yr</option><option value="energy">Energy Cost</option><option value="sell">Sell Price</option><option value="util">Utilization</option></select></div>
+        <div class="cg"><label>Install Tier</label><select id="mapInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
+      </div>
       <div class="avail-main">
         <div class="map-box"><div id="worldMap"></div></div>
         <aside class="sidebar">
           <div class="rpanel"><h3><span class="dot" style="background:#10b981"></span> Markets by Payback</h3><ol class="rlist" id="mktList"></ol></div>
         </aside>
       </div>
-      <div class="legend" style="margin-top:12px">
-        <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; per-state tool</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Publicly live (page + pricing) &mdash; 11</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#a78bfa"></div>Priced in API, no public page &mdash; 20</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Announced, not priced</div>
-        <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not a market</div>
-      </div>
+      <div class="legend" id="availLegend" style="margin-top:12px"></div>
     </div>
 
   <div id="viewUS" style="display:none">
@@ -1139,6 +1137,7 @@ function tierColor(t) { return t === 'us' ? SFB_US_COLOR : t === 'live' ? SFB_LI
 let worldData = null;
 let mapView = 'world';
 let mapDisplay = 'USD';   // map tooltip currency: 'USD' | 'EUR' | 'NATIVE'
+let mapMetric = 'tier';   // availability map coloring: 'tier' | payback | profit | energy | sell | util
 // [west, east, south, north] geographic bounding box for the EMEA zoom preset.
 // 'us' is no longer a world-map zoom — it switches to the 50-state ROI view.
 const MAP_BBOX = { emea: [-25, 60, 13, 73] };
@@ -1221,7 +1220,12 @@ function drawWorldMap() {
     .attr('d', path)
     .attr('class', d => sfbLookup(d) ? 'country-path avail' : 'country-path')
     .attr('data-iso', d => parseInt(d.id, 10))
-    .attr('fill', d => { const r = sfbLookup(d); return r ? tierColor(r.tier) : 'var(--surface3)'; })
+    .attr('fill', d => {
+      const r = sfbLookup(d);
+      if (!r) return 'var(--surface3)';
+      if (mapMetric === 'tier') return tierColor(r.tier);
+      return r.d ? globalMetricColor(r.d) : 'var(--surface3)'; // only priced markets have a metric value
+    })
     .on('mouseenter', function(ev, d) { const r = sfbLookup(d); if (!r) return; d3.select(this).raise(); showCountryTT(ev, r); })
     .on('mousemove', ev => moveTT(ev))
     .on('mouseleave', () => hideTT())
@@ -1325,6 +1329,50 @@ function cmpPayColor(pb) {
   if (pb < 3) return colors.excellent; if (pb < 5) return colors.good;
   if (pb < 8) return colors.moderate; if (pb < 15) return colors.marginal;
   if (pb < 30) return colors.poor; return colors.terrible;
+}
+
+// Color a priced market (INTL entry) by the active availability-map metric.
+// Energy/sell are USD-normalized so they're comparable across currencies.
+function globalMetricColor(d) {
+  const c = colors;
+  if (mapMetric === 'payback') return cmpPayColor(intlCalc(d).payback);
+  if (mapMetric === 'profit') { const v = toUSD(intlCalc(d).profit, d.ccy); return v > 60000 ? c.excellent : v > 40000 ? c.good : v > 25000 ? c.moderate : v > 15000 ? c.marginal : v > 0 ? c.poor : c.terrible; }
+  if (mapMetric === 'energy') { const v = toUSD(d.e, d.ccy); return v < 0.10 ? c.excellent : v < 0.14 ? c.good : v < 0.18 ? c.moderate : v < 0.22 ? c.marginal : v < 0.28 ? c.poor : c.terrible; }
+  if (mapMetric === 'sell') { const v = toUSD(d.p, d.ccy); return v > 0.70 ? c.excellent : v > 0.60 ? c.good : v > 0.55 ? c.moderate : v > 0.50 ? c.marginal : v > 0.45 ? c.poor : c.terrible; }
+  const u = d.u; return u > 350 ? c.excellent : u > 250 ? c.good : u > 180 ? c.moderate : u > 120 ? c.marginal : u > 80 ? c.poor : c.terrible; // util
+}
+function availLegendItems() {
+  const c = colors;
+  if (mapMetric === 'payback') return [['< 3 yr', c.excellent], ['3–5', c.good], ['5–8', c.moderate], ['8–15', c.marginal], ['15–30', c.poor], ['30+', c.terrible]];
+  if (mapMetric === 'profit') return [['> $60K', c.excellent], ['$40–60K', c.good], ['$25–40K', c.moderate], ['$15–25K', c.marginal], ['$0–15K', c.poor], ['< $0', c.terrible]];
+  if (mapMetric === 'energy') return [['< $0.10', c.excellent], ['$0.10–0.14', c.good], ['$0.14–0.18', c.moderate], ['$0.18–0.22', c.marginal], ['$0.22–0.28', c.poor], ['> $0.28', c.terrible]];
+  if (mapMetric === 'sell') return [['> $0.70', c.excellent], ['$0.60–0.70', c.good], ['$0.55–0.60', c.moderate], ['$0.50–0.55', c.marginal], ['$0.45–0.50', c.poor], ['< $0.45', c.terrible]];
+  return [['> 350', c.excellent], ['250–350', c.good], ['180–250', c.moderate], ['120–180', c.marginal], ['80–120', c.poor], ['< 80', c.terrible]]; // util
+}
+function renderAvailLegend() {
+  const el = document.getElementById('availLegend');
+  if (!el) return;
+  let items;
+  if (mapMetric === 'tier') {
+    items = [['var(--accent)', 'U.S. — per-state tool'], ['#10b981', 'Publicly live (page + pricing) — 11'], ['#a78bfa', 'Priced in API, no public page — 20'], ['#fbbf24', 'Announced, not priced'], ['var(--surface3)', 'Not a market']];
+  } else {
+    items = availLegendItems().map(([l, c]) => [c, l]).concat([['var(--surface3)', 'No pricing']]);
+  }
+  el.innerHTML = items.map(([c, l]) => `<div class="legend-item"><div class="legend-swatch" style="background:${c}"></div>${l}</div>`).join('');
+}
+// Install tier is shared between the availability map and the comparison table.
+function setInstallTier(tier) {
+  cmpInstall = tier;
+  const a = document.getElementById('mapInstallSel'), b = document.getElementById('cmpInstallSel');
+  if (a) a.value = tier; if (b) b.value = tier;
+  renderCompare();                              // KPIs, market list, comparison table + chart
+  if (mapMetric !== 'tier') drawWorldMap();     // recolor the map if it's showing a metric
+}
+function initAvailControls() {
+  const m = document.getElementById('mapMetricSel');
+  if (m) m.addEventListener('change', e => { mapMetric = e.target.value; drawWorldMap(); renderAvailLegend(); });
+  const ins = document.getElementById('mapInstallSel');
+  if (ins) ins.addEventListener('change', e => setInstallTier(e.target.value));
 }
 
 function cmpRows() {
@@ -1488,7 +1536,7 @@ function renderCompare() {
 function initCompare() {
   if (!document.getElementById('cmpBody')) return;
   document.getElementById('cmpDisplay').addEventListener('change', e => { cmpDisplay = e.target.value; renderCompare(); });
-  document.getElementById('cmpInstallSel').addEventListener('change', e => { cmpInstall = e.target.value; renderCompare(); });
+  document.getElementById('cmpInstallSel').addEventListener('change', e => setInstallTier(e.target.value));
   document.getElementById('cmpMetricSel').addEventListener('change', e => { cmpMetric = e.target.value; renderCompare(); });
   document.querySelectorAll('#cmpTable th.sortable').forEach(th => {
     th.addEventListener('click', () => {
@@ -1588,6 +1636,8 @@ initChartSelect();
 initCurrencySelect();
 initCompare();
 initMapZoom();
+initAvailControls();
+renderAvailLegend();
 updateStaticMoney();
 renderCompare();
 loadFX();
