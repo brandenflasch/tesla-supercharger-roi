@@ -210,6 +210,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .zbtn { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border-bright); border-radius: 6px; padding: 5px 11px; font-family: var(--font-body); font-size: 11px; font-weight: 500; cursor: pointer; transition: all 0.12s; }
 .zbtn:hover { color: var(--text); border-color: var(--accent); }
 .zbtn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
+.map-ccy { margin-left: auto; background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 6px; padding: 5px 8px; font-family: var(--font-body); font-size: 11px; cursor: pointer; }
+.map-ccy:focus { outline: 1px solid var(--accent); }
 
 /* Disclaimer */
 .disc { margin-top: 20px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
@@ -260,6 +262,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="us" class="zbtn">🇺🇸 United States</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
+      <select id="mapDisplay" class="map-ccy" title="Tooltip currency"><option value="USD" selected>$ USD</option><option value="EUR">€ EUR</option><option value="NATIVE">Native</option></select>
     </div>
     <div class="map-box"><div id="worldMap"></div></div>
     <div class="legend" style="margin-top:12px">
@@ -339,9 +342,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <h2>International Price &amp; ROI Comparison</h2>
       <span class="cab-badge">31 live markets</span>
     </div>
-    <div class="cmp-sub">Real per-country hardware, install, fee and rate data from Tesla's pricing API, run through the same ROI model as the US analysis (per stall, 8-post site assumed for cabinet sharing). Pricing is national outside the US. <strong>Payback is currency-independent</strong> (CapEx and profit scale together), so it compares directly; monetary columns convert to USD at live FX when "USD" is selected.</div>
+    <div class="cmp-sub">Real per-country hardware, install, fee and rate data from Tesla's pricing API, run through the same ROI model as the US analysis (per stall, 8-post site assumed for cabinet sharing). Pricing is national outside the US. <strong>Payback is currency-independent</strong> (CapEx and profit scale together), so it compares directly; monetary columns normalize to USD or EUR at live FX, or show each market's native currency.</div>
     <div class="cmp-controls">
-      <div class="cg"><label>Display</label><select id="cmpDisplay"><option value="USD" selected>USD (normalized)</option><option value="NATIVE">Native currency</option></select></div>
+      <div class="cg"><label>Display</label><select id="cmpDisplay"><option value="USD" selected>USD (normalized)</option><option value="EUR">EUR (normalized)</option><option value="NATIVE">Native currency</option></select></div>
       <div class="cg"><label>Install Tier</label><select id="cmpInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
       <div class="cg"><label>Chart Metric</label><select id="cmpMetricSel"><option value="payback" selected>Payback (yrs)</option><option value="capexUsd">CapEx / stall</option><option value="profitUsd">Profit / stall / yr</option><option value="hwUsd">Hardware / stall</option><option value="eUsd">Energy cost /kWh (buy)</option><option value="pUsd">Sell price /kWh (sell)</option><option value="u">Utilization</option></select></div>
     </div>
@@ -1116,6 +1119,7 @@ function tierColor(t) { return t === 'us' ? SFB_US_COLOR : t === 'soon' ? SFB_SO
 
 let worldData = null;
 let mapView = 'world';
+let mapDisplay = 'USD';   // map tooltip currency: 'USD' | 'EUR' | 'NATIVE'
 // [west, east, south, north] geographic bounding boxes for the zoom presets.
 const MAP_BBOX = { us: [-127, -66, 24, 50], emea: [-25, 60, 13, 73] };
 // Thinner strokes when zoomed (countries are larger, so borders stay crisp not chunky).
@@ -1140,6 +1144,8 @@ function setMapView(v) {
 }
 function initMapZoom() {
   document.querySelectorAll('.zbtn').forEach(b => b.addEventListener('click', () => setMapView(b.dataset.view)));
+  const ms = document.getElementById('mapDisplay');
+  if (ms) ms.addEventListener('change', e => { mapDisplay = e.target.value; });  // next hover uses the new currency
 }
 
 function drawWorldMap() {
@@ -1180,16 +1186,17 @@ function showCountryTT(ev, r) {
   } else {
     const d = r.d, c = intlCalc(d);
     const pb = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
-    const usd = v => '$' + Math.round(toUSD(v, d.ccy)).toLocaleString();
+    const m = v => fmtMoneyIn(v, d.ccy, mapDisplay);
+    const mr = v => fmtMoneyIn(v, d.ccy, mapDisplay, 'rate');
     ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>
       <dl class="tt-grid">
-        <dt>Energy</dt><dd>${cmpSym(d.ccy)}${d.e}/kWh</dd>
-        <dt>Sell Price</dt><dd>${cmpSym(d.ccy)}${d.p}/kWh</dd>
+        <dt>Energy</dt><dd>${mr(d.e)}/kWh</dd>
+        <dt>Sell Price</dt><dd>${mr(d.p)}/kWh</dd>
         <dt>Utilization</dt><dd>${d.u.toFixed(0)} kWh/day</dd>
-        <dt>Tesla Fee</dt><dd>${cmpSym(d.ccy)}${d.fee}/kWh</dd>
-        <dt>Hardware/Stall</dt><dd>${usd(d.hw)}</dd>
-        <dt>Install (Med)</dt><dd>${usd(d.iM)}</dd>
-        <dt>Profit/Stall/Yr</dt><dd class="${c.profit > 0 ? 'pos' : 'neg'}">${usd(c.profit)}</dd>
+        <dt>Tesla Fee</dt><dd>${mr(d.fee)}/kWh</dd>
+        <dt>Hardware/Stall</dt><dd>${m(d.hw)}</dd>
+        <dt>Install (Med)</dt><dd>${m(d.iM)}</dd>
+        <dt>Profit/Stall/Yr</dt><dd class="${c.profit > 0 ? 'pos' : 'neg'}">${m(c.profit)}</dd>
       </dl>
       <div class="tt-pb" style="color:${col}">Payback: ${pb}${d.us ? ' · 50-state tool below' : ''}${d.anomaly ? ' · ⚠ hardware ×10-corrected' : ''}</div>`;
   }
@@ -1208,6 +1215,8 @@ let cmpChart = null;
 
 function fxOf(ccy) { return fxRates[ccy] != null ? fxRates[ccy] : (FX_INTL_FB[ccy] || 1); }
 function toUSD(v, ccy) { return v / fxOf(ccy); }
+function normTarget() { return cmpDisplay === 'EUR' ? 'EUR' : 'USD'; }   // chart/sort normalization currency
+function convCur(v, fromCcy, toCcy) { return v / fxOf(fromCcy) * fxOf(toCcy); }
 
 // ROI per stall in native currency (same model as the US analysis).
 function intlCalc(d) {
@@ -1220,16 +1229,18 @@ function intlCalc(d) {
   const payback = profit > 0 ? capex / profit : 999;
   return { kwhYr, revenue, cost, profit, install, capex, payback };
 }
-// Format a native-currency amount per the active display mode.
-function cmpMoney(vNative, ccy, kind) {
-  // kind: undefined = whole money, 'rate' = per-kWh (decimals)
-  if (cmpDisplay === 'USD') {
-    const u = toUSD(vNative, ccy);
-    return kind === 'rate' ? '$' + u.toFixed(3) : '$' + Math.round(u).toLocaleString();
+// Format a native-currency amount in a target mode (USD / EUR / NATIVE).
+// kind: undefined = whole money, 'rate' = per-kWh (decimals)
+function fmtMoneyIn(vNative, ccy, mode, kind) {
+  if (mode === 'NATIVE') {
+    const sym = cmpSym(ccy);
+    return kind === 'rate' ? sym + vNative.toFixed(3) : sym + Math.round(vNative).toLocaleString();
   }
-  const sym = cmpSym(ccy);
-  return kind === 'rate' ? sym + vNative.toFixed(3) : sym + Math.round(vNative).toLocaleString();
+  const sym = mode === 'EUR' ? '€' : '$';
+  const v = convCur(vNative, ccy, mode);
+  return kind === 'rate' ? sym + v.toFixed(3) : sym + Math.round(v).toLocaleString();
 }
+function cmpMoney(vNative, ccy, kind) { return fmtMoneyIn(vNative, ccy, cmpDisplay, kind); }
 function cmpPayColor(pb) {
   if (pb < 3) return colors.excellent; if (pb < 5) return colors.good;
   if (pb < 8) return colors.moderate; if (pb < 15) return colors.marginal;
@@ -1237,6 +1248,7 @@ function cmpPayColor(pb) {
 }
 
 function cmpRows() {
+  const norm = normTarget();
   return Object.keys(INTL).map(cc => {
     const d = INTL[cc];
     const c = intlCalc(d);
@@ -1244,9 +1256,10 @@ function cmpRows() {
       cc, n: d.n, ccy: d.ccy, us: d.us, anomaly: d.anomaly,
       e: d.e, p: d.p, u: d.u, fee: d.fee, hw: d.hw, install: c.install, capex: c.capex,
       profit: c.profit, payback: c.payback,
-      // USD-normalized values for charting/sorting consistency
-      hwUsd: toUSD(d.hw, d.ccy), capexUsd: toUSD(c.capex, d.ccy), profitUsd: toUSD(c.profit, d.ccy),
-      eUsd: toUSD(d.e, d.ccy), pUsd: toUSD(d.p, d.ccy)
+      // normalized to the active comparison currency (USD or EUR) for sorting + charting
+      hwN: convCur(d.hw, d.ccy, norm), installN: convCur(c.install, d.ccy, norm),
+      capexN: convCur(c.capex, d.ccy, norm), profitN: convCur(c.profit, d.ccy, norm),
+      feeN: convCur(d.fee, d.ccy, norm), eN: convCur(d.e, d.ccy, norm), pN: convCur(d.p, d.ccy, norm)
     };
   });
 }
@@ -1254,11 +1267,13 @@ function cmpRows() {
 function renderCompare() {
   if (!document.getElementById('cmpBody')) return;
   const rows = cmpRows();
-  // Sort
+  // Sort — money columns sort by their normalized (USD/EUR) value, not native,
+  // so the order is comparable across currencies and matches the displayed figures.
+  const SORTKEY = { hw: 'hwN', install: 'installN', capex: 'capexN', fee: 'feeN', e: 'eN', p: 'pN', profit: 'profitN', u: 'u', payback: 'payback' };
   rows.sort((a, b) => {
     if (cmpSortCol === 'n') return cmpSortDir === 'asc' ? a.n.localeCompare(b.n) : b.n.localeCompare(a.n);
-    const va = a[cmpSortCol], vb = b[cmpSortCol];
-    return cmpSortDir === 'asc' ? va - vb : vb - va;
+    const k = SORTKEY[cmpSortCol] || cmpSortCol;
+    return cmpSortDir === 'asc' ? a[k] - b[k] : b[k] - a[k];
   });
 
   // Table
@@ -1288,11 +1303,11 @@ function renderCompare() {
 
   // Chart — always sorted by the chosen metric for readability
   const metricVal = r => cmpMetric === 'payback' ? Math.min(r.payback, 60)
-    : cmpMetric === 'capexUsd' ? r.capexUsd
-    : cmpMetric === 'profitUsd' ? r.profitUsd
-    : cmpMetric === 'hwUsd' ? r.hwUsd
-    : cmpMetric === 'eUsd' ? r.eUsd
-    : cmpMetric === 'pUsd' ? r.pUsd : r.u;
+    : cmpMetric === 'capexUsd' ? r.capexN
+    : cmpMetric === 'profitUsd' ? r.profitN
+    : cmpMetric === 'hwUsd' ? r.hwN
+    : cmpMetric === 'eUsd' ? r.eN
+    : cmpMetric === 'pUsd' ? r.pN : r.u;
   // lower-is-better metrics sort ascending (best on top); higher-is-better sort descending
   const asc = ['payback', 'capexUsd', 'hwUsd', 'eUsd'].includes(cmpMetric);
   const perKwh = cmpMetric === 'eUsd' || cmpMetric === 'pUsd';
@@ -1303,7 +1318,8 @@ function renderCompare() {
   const isDark = isDarkTheme();
   const textColor = isDark ? '#8b949e' : '#6b7280';
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const metricLabel = { payback: 'Payback (years)', capexUsd: 'CapEx / stall (USD)', profitUsd: 'Profit / stall / yr (USD)', hwUsd: 'Hardware / stall (USD)', eUsd: 'Energy cost — purchase (USD / kWh)', pUsd: 'Sell price — to driver (USD / kWh)', u: 'Utilization (kWh / stall / day)' }[cmpMetric];
+  const norm = normTarget(), normSym = norm === 'EUR' ? '€' : '$';
+  const metricLabel = { payback: 'Payback (years)', capexUsd: `CapEx / stall (${norm})`, profitUsd: `Profit / stall / yr (${norm})`, hwUsd: `Hardware / stall (${norm})`, eUsd: `Energy cost — purchase (${norm} / kWh)`, pUsd: `Sell price — to driver (${norm} / kWh)`, u: 'Utilization (kWh / stall / day)' }[cmpMetric];
 
   if (cmpChart) cmpChart.destroy();
   cmpChart = new Chart(document.getElementById('cmpChart'), {
@@ -1317,12 +1333,12 @@ function renderCompare() {
           const r = chartRows[ctx.dataIndex];
           if (cmpMetric === 'payback') return (r.payback > 100 ? '100+' : r.payback.toFixed(1)) + ' yr payback';
           if (cmpMetric === 'u') return r.u.toFixed(0) + ' kWh/stall/day';
-          if (perKwh) return '$' + ctx.parsed.x.toFixed(3) + '/kWh';
-          return '$' + Math.round(ctx.parsed.x).toLocaleString();
+          if (perKwh) return normSym + ctx.parsed.x.toFixed(3) + '/kWh';
+          return normSym + Math.round(ctx.parsed.x).toLocaleString();
         } } }
       },
       scales: {
-        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => cmpMetric === 'payback' ? v + 'y' : cmpMetric === 'u' ? v : perKwh ? '$' + v.toFixed(2) : (v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v) }, grid: { color: gridColor }, title: { display: true, text: metricLabel, color: textColor, font: { size: 11 } } },
+        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => cmpMetric === 'payback' ? v + 'y' : cmpMetric === 'u' ? v : perKwh ? normSym + v.toFixed(2) : (v >= 1000 ? normSym + (v/1000).toFixed(0) + 'K' : normSym + v) }, grid: { color: gridColor }, title: { display: true, text: metricLabel, color: textColor, font: { size: 11 } } },
         y: { ticks: { color: textColor, font: { size: 9 }, autoSkip: false }, grid: { display: false } }
       }
     }
@@ -1330,7 +1346,7 @@ function renderCompare() {
 
   // FX note
   const fxEl = document.getElementById('cmpFx');
-  if (fxEl) fxEl.textContent = cmpDisplay === 'USD' ? `Converted at ${fxLive ? 'live' : 'approx'} FX (open.er-api.com).` : 'Showing each market in its own currency.';
+  if (fxEl) fxEl.textContent = cmpDisplay === 'NATIVE' ? 'Showing each market in its own currency.' : `Normalized to ${cmpDisplay} at ${fxLive ? 'live' : 'approx'} FX (open.er-api.com).`;
 }
 
 function initCompare() {
