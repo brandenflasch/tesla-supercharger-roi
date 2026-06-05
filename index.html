@@ -1330,10 +1330,16 @@ function renderGlobalKpis() {
   const best = rows.reduce((a, b) => a.payback < b.payback ? a : b);
   const worst = rows.reduce((a, b) => a.payback > b.payback ? a : b);
   const under = rows.filter(r => r.payback < 3).length;
-  document.getElementById('gkpi-med').textContent = med.toFixed(1) + ' yr';
-  document.getElementById('gkpi-best').textContent = best.n + ' · ' + best.payback.toFixed(1) + 'y';
-  document.getElementById('gkpi-worst').textContent = worst.n + ' · ' + worst.payback.toFixed(0) + 'y';
-  document.getElementById('gkpi-fast').textContent = under + ' / ' + rows.length;
+  const setKpi = (id, val, label) => {
+    const el = document.getElementById(id);
+    el.textContent = val;
+    if (label != null) el.nextElementSibling.textContent = label;
+  };
+  // Uniform numeric values; country moves into the sub-label so the row reads cleanly.
+  setKpi('gkpi-med', med.toFixed(1) + ' yr');
+  setKpi('gkpi-best', best.payback.toFixed(1) + ' yr', 'Fastest · ' + best.n);
+  setKpi('gkpi-worst', worst.payback.toFixed(0) + ' yr', 'Slowest · ' + worst.n);
+  setKpi('gkpi-fast', under + ' / ' + rows.length);
 }
 
 function renderCompare() {
