@@ -207,6 +207,11 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .country-path { stroke: var(--map-stroke); stroke-width: var(--cw, 0.65); stroke-linejoin: round; transition: filter 0.12s; }
 .country-path.avail { cursor: pointer; }
 .country-path.avail:hover { filter: brightness(1.25); stroke: var(--text); stroke-width: calc(var(--cw, 0.65) * 2.4); }
+.country-path.active { stroke: var(--text); stroke-width: calc(var(--cw, 0.65) * 2.6); filter: brightness(1.2); }
+.country-label { font-family: var(--font-mono); font-size: 8px; font-weight: 600; fill: rgba(10,14,22,0.88); pointer-events: none; text-anchor: middle; dominant-baseline: central; }
+.avail-main { display: grid; grid-template-columns: 1fr 300px; gap: 16px; align-items: start; }
+@media (max-width: 1024px) { .avail-main { grid-template-columns: 1fr; } }
+#mktList { max-height: 480px; overflow-y: auto; }
 
 /* Map zoom presets */
 .map-zoom { display: flex; flex-wrap: wrap; gap: 6px; margin-bottom: 10px; }
@@ -264,7 +269,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
         <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
       </div>
-      <div class="map-box"><div id="worldMap"></div></div>
+      <div class="avail-main">
+        <div class="map-box"><div id="worldMap"></div></div>
+        <aside class="sidebar">
+          <div class="rpanel"><h3><span class="dot" style="background:#10b981"></span> Markets by Payback</h3><ol class="rlist" id="mktList"></ol></div>
+        </aside>
+      </div>
       <div class="legend" style="margin-top:12px">
         <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; per-state tool</div>
         <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Publicly live (page + pricing) &mdash; 11</div>
@@ -1209,6 +1219,7 @@ function drawWorldMap() {
   svg.append('g').selectAll('path').data(feats).join('path')
     .attr('d', path)
     .attr('class', d => sfbLookup(d) ? 'country-path avail' : 'country-path')
+    .attr('data-iso', d => parseInt(d.id, 10))
     .attr('fill', d => { const r = sfbLookup(d); return r ? tierColor(r.tier) : 'var(--surface3)'; })
     .on('mouseenter', function(ev, d) { const r = sfbLookup(d); if (!r) return; d3.select(this).raise(); showCountryTT(ev, r); })
     .on('mousemove', ev => moveTT(ev))
@@ -1220,6 +1231,17 @@ function drawWorldMap() {
       if (r.tier === 'us') { setMapView('us'); document.querySelector('.avail-section').scrollIntoView({ behavior: 'smooth', block: 'start' }); }
       else if (r.d) selectCountry(r.d.cc);   // priced/live -> jump to its comparison row
     });
+
+  // Country-code labels for priced markets (only where the projected area is big enough,
+  // so the World view stays clean and the EMEA zoom gets readable labels).
+  svg.append('g').selectAll('text')
+    .data(feats.filter(f => { const r = sfbLookup(f); return r && r.d; }))
+    .join('text')
+    .attr('class', 'country-label')
+    .attr('x', d => path.centroid(d)[0])
+    .attr('y', d => path.centroid(d)[1])
+    .text(d => sfbLookup(d).d.cc)
+    .style('display', d => { const b = path.bounds(d); return (b[1][0]-b[0][0]) * (b[1][1]-b[0][1]) < 110 ? 'none' : null; });
 }
 
 // Scroll to a country's row in the comparison table and flash it.
@@ -1340,6 +1362,38 @@ function renderGlobalKpis() {
   setKpi('gkpi-best', best.payback.toFixed(1) + ' yr', 'Fastest · ' + best.n);
   setKpi('gkpi-worst', worst.payback.toFixed(0) + ' yr', 'Slowest · ' + worst.n);
   setKpi('gkpi-fast', under + ' / ' + rows.length);
+  renderMarketList();
+}
+
+// Highlight a country on the world map (driven by the market-list hover).
+function highlightCountry(cc, on) {
+  const iso = INTL[cc] && INTL[cc].iso;
+  if (iso == null) return;
+  const p = document.querySelector(`#worldMap .country-path[data-iso="${iso}"]`);
+  if (p) p.classList.toggle('active', on);
+}
+
+// The availability-view side panel: all 31 priced markets ranked by payback,
+// with launch dots, hover-to-highlight on the map, and click-to-jump to the table.
+function renderMarketList() {
+  const el = document.getElementById('mktList');
+  if (!el) return;
+  const rows = cmpRows().sort((a, b) => a.payback - b.payback);
+  el.innerHTML = rows.map((r, i) => {
+    const col = cmpPayColor(r.payback);
+    const pb = r.payback > 100 ? '100+' : r.payback.toFixed(1);
+    const launched = r.us || LAUNCHED.has(r.cc);
+    const dot = r.us ? '★' : (launched ? '●' : '○');
+    const dotCol = r.us ? 'var(--accent)' : (launched ? '#10b981' : '#a78bfa');
+    const tip = launched ? 'publicly live' : 'priced only (no public page)';
+    return `<li data-cc="${r.cc}"><span class="rn">${i + 1}</span><span class="rs" style="width:auto;color:${dotCol}" title="${tip}">${dot}</span><span style="flex:1;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</span><span class="rv" style="color:${col}">${pb} yr</span></li>`;
+  }).join('');
+  el.querySelectorAll('li').forEach(li => {
+    const cc = li.dataset.cc;
+    li.addEventListener('mouseenter', () => highlightCountry(cc, true));
+    li.addEventListener('mouseleave', () => highlightCountry(cc, false));
+    li.addEventListener('click', () => selectCountry(cc));
+  });
 }
 
 function renderCompare() {
