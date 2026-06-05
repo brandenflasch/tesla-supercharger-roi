@@ -163,6 +163,25 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .dtable .pos { color: #10b981; }
 .dtable .neg { color: #ef4444; }
 
+/* Program stats strip */
+.prog-strip { display: grid; grid-template-columns: repeat(6, 1fr); gap: 10px; margin-bottom: 20px; }
+.ps { background: var(--surface); border: 1px solid var(--border); border-radius: 10px; padding: 12px 8px; text-align: center; }
+.ps-v { font-size: 18px; font-weight: 700; color: var(--accent); font-variant-numeric: tabular-nums; line-height: 1.1; }
+.ps-l { font-family: var(--font-mono); font-size: 8px; font-weight: 600; text-transform: uppercase; letter-spacing: 0.6px; color: var(--text-dim); margin-top: 4px; }
+@media (max-width: 768px) { .prog-strip { grid-template-columns: repeat(3, 1fr); } }
+
+/* International comparison section */
+.cmp-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-top: 20px; }
+.cmp-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
+.cmp-head h2 { font-size: 16px; font-weight: 600; }
+.cmp-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; }
+.cmp-sub strong { color: var(--text); }
+.cmp-controls { display: flex; flex-wrap: wrap; gap: 16px; margin-bottom: 16px; }
+.cmp-chart-box { position: relative; height: 720px; }
+.cmp-chart-box canvas { width: 100% !important; height: 100% !important; }
+.cmp-note { margin-top: 12px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+@media (max-width: 768px) { .cmp-chart-box { height: 560px; } }
+
 /* Availability (world) section */
 .avail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
 .avail-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -190,8 +209,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 <div class="page">
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: State-by-State ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger For Business page</a> &middot; April 2026</div>
-    <div class="byline">Made by Branden Flasch</div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> pricing API &middot; 31 live markets</div>
+    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;4,&nbsp;2026</span></div>
     <div class="socials">
       <a href="https://bflasch.com" target="_blank" rel="noopener" title="bflasch.com"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>
       <a href="https://youtube.com/@brandenflasch" target="_blank" rel="noopener" title="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
@@ -201,18 +220,29 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     </div>
   </div>
 
+  <!-- Program stats strip -->
+  <div class="prog-strip anim" style="--i:1">
+    <div class="ps"><div class="ps-v">80,000+</div><div class="ps-l">Stalls (2025)</div></div>
+    <div class="ps"><div class="ps-v">6.7 TWh</div><div class="ps-l">Delivered 2025</div></div>
+    <div class="ps"><div class="ps-v">99.9%+</div><div class="ps-l">Network Uptime</div></div>
+    <div class="ps"><div class="ps-v">#1</div><div class="ps-l">N. America &amp; UK</div></div>
+    <div class="ps"><div class="ps-v">10+/day</div><div class="ps-l">US Sessions/Stall</div></div>
+    <div class="ps"><div class="ps-v">31</div><div class="ps-l">Live Markets</div></div>
+  </div>
+
   <!-- Global Availability Map -->
-  <div class="avail-section anim" style="--i:1">
+  <div class="avail-section anim" style="--i:2">
     <div class="avail-head">
-      <h2>Where Supercharger for Business Is Available</h2>
-      <span class="avail-count" id="availCount">8 countries</span>
+      <h2>Where Supercharger for Business Is Live</h2>
+      <span class="avail-count" id="availCount">31 markets</span>
     </div>
-    <div class="avail-sub">Launched in the U.S. (Sept 2025), now expanded to seven more countries across Europe &amp; the Middle East. The interactive ROI calculator below is currently U.S.-only &mdash; the other markets have the program but not the self-serve estimator yet.</div>
+    <div class="avail-sub">Live-market map derived directly from Tesla's pricing API (countries that return real pricing). The program is overwhelmingly European; the U.S. is the only market with per-state pricing and the detailed 50-state tool below. Saudi Arabia, Qatar &amp; Jordan are announced but their pricing isn't live yet.</div>
     <div class="map-box"><div id="worldMap"></div></div>
     <div class="legend" style="margin-top:12px">
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; Available + ROI calculator</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Available (program live)</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not yet available</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; per-state tool</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Live (real pricing)</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Announced, not yet priced</div>
+      <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not a market</div>
     </div>
   </div>
 
@@ -279,12 +309,46 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     </div>
   </div>
 
-  <div class="disc anim" style="--i:13">
+  <!-- International Price & ROI Comparison -->
+  <div class="cmp-section anim" style="--i:13">
+    <div class="cmp-head">
+      <h2>International Price &amp; ROI Comparison</h2>
+      <span class="cab-badge">31 live markets</span>
+    </div>
+    <div class="cmp-sub">Real per-country hardware, install, fee and rate data from Tesla's pricing API, run through the same ROI model as the US analysis (per stall, 8-post site assumed for cabinet sharing). Pricing is national outside the US. <strong>Payback is currency-independent</strong> (CapEx and profit scale together), so it compares directly; monetary columns convert to USD at live FX when "USD" is selected.</div>
+    <div class="cmp-controls">
+      <div class="cg"><label>Display</label><select id="cmpDisplay"><option value="USD" selected>USD (normalized)</option><option value="NATIVE">Native currency</option></select></div>
+      <div class="cg"><label>Install Tier</label><select id="cmpInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
+      <div class="cg"><label>Chart Metric</label><select id="cmpMetricSel"><option value="payback" selected>Payback (yrs)</option><option value="capexUsd">CapEx / stall</option><option value="profitUsd">Profit / stall / yr</option><option value="hwUsd">Hardware / stall</option></select></div>
+    </div>
+    <div class="cmp-chart-box"><canvas id="cmpChart"></canvas></div>
+    <div class="table-scroll" style="margin-top:18px">
+      <table class="dtable" id="cmpTable">
+        <thead><tr>
+          <th data-c="n" class="sortable">Country</th>
+          <th data-c="hw" class="sortable num">Hardware/Stall</th>
+          <th data-c="install" class="sortable num">Install</th>
+          <th data-c="capex" class="sortable num">CapEx/Stall</th>
+          <th data-c="fee" class="sortable num">Tesla Fee</th>
+          <th data-c="e" class="sortable num">Energy</th>
+          <th data-c="p" class="sortable num">Sell</th>
+          <th data-c="u" class="sortable num">Util</th>
+          <th data-c="profit" class="sortable num">Profit/Stall/Yr</th>
+          <th data-c="payback" class="sortable num">Payback</th>
+        </tr></thead>
+        <tbody id="cmpBody"></tbody>
+      </table>
+    </div>
+    <div class="cmp-note"><span id="cmpFx"></span> Energy/sell/fee are per-kWh. &#9888; Norway's hardware figure is a likely Tesla data error (cabinet ~10&times; below the global baseline) &mdash; treat its payback with caution.</div>
+  </div>
+
+  <div class="disc anim" style="--i:14">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
     <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
     <span id="maineFixed" style="color:#10b981;margin-left:4px;">&#10003; Maine corrected to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use raw $0.008</a></span>
     <a href="#" id="fixMaine" style="display:none;color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Restore $0.15/kWh for Maine</a>
+    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; program stats (80,000+ stalls, 6.7&nbsp;TWh, 99.9%+ uptime, #1 NA/UK, 10+ sessions/stall/day) from Tesla's <a href="https://www.tesla.com/supercharger-for-business" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Supercharger for Business</a> page (Mar 16, 2026). <strong>All data accurate as of June&nbsp;4,&nbsp;2026.</strong> International FX via open.er-api.com (live).
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -964,30 +1028,67 @@ document.getElementById('revertMaine').addEventListener('click', e => {
   renderAll();
 });
 
-// ===== GLOBAL AVAILABILITY MAP =====
-// Tesla Supercharger for Business country availability.
-// US launched Sept 2025; expanded to 7 EU/Middle East countries in 2026.
-// Keyed by world-atlas country `name`; `tier` 'calc' = has self-serve ROI calculator.
-const SFB_COUNTRIES = {
-  'United States of America': { label: 'United States',        region: 'North America', tier: 'calc',  note: 'Launched Sept 2025 · ROI calculator live' },
-  'France':                   { label: 'France',               region: 'Europe',        tier: 'avail', note: 'Program available' },
-  'Spain':                    { label: 'Spain',                region: 'Europe',        tier: 'avail', note: 'Program available' },
-  'Italy':                    { label: 'Italy',                region: 'Europe',        tier: 'avail', note: 'Program available' },
-  'Saudi Arabia':             { label: 'Saudi Arabia',         region: 'Middle East',   tier: 'avail', note: 'Program available' },
-  'United Arab Emirates':     { label: 'United Arab Emirates', region: 'Middle East',   tier: 'avail', note: 'Program available' },
-  'Qatar':                    { label: 'Qatar',                region: 'Middle East',   tier: 'avail', note: 'Program available' },
-  'Jordan':                   { label: 'Jordan',               region: 'Middle East',   tier: 'avail', note: 'Program available' }
+// ===== INTERNATIONAL DATA (Supercharger for Business) =====
+// Real per-country pricing pulled from Tesla's /api/energy/supercharger/pricing
+// endpoint on 2026-06-04. Pricing is NATIONAL outside the US (every region in a
+// country returns identical values). Monetary fields are per-stall, native currency.
+// hw = cabinet+otherHardware+services+shipping; iL/iM/iH = install Low/Med/High.
+const INTL = {
+  US: { n:'United States',        iso:840, ccy:'USD', e:0.222, p:0.59,   u:449.6, fee:0.10,  hw:62500,    iL:45000,    iM:55000,    iH:65000,    us:true },
+  DE: { n:'Germany',              iso:276, ccy:'EUR', e:0.162, p:0.59,   u:234.2, fee:0.087, hw:37500,    iL:45510,    iM:55500,    iH:65490 },
+  FR: { n:'France',               iso:250, ccy:'EUR', e:0.097, p:0.52,   u:259.1, fee:0.087, hw:37500,    iL:35260,    iM:43000,    iH:50740 },
+  ES: { n:'Spain',                iso:724, ccy:'EUR', e:0.147, p:0.47,   u:207.1, fee:0.087, hw:37500,    iL:36695,    iM:44750,    iH:52805 },
+  IT: { n:'Italy',                iso:380, ccy:'EUR', e:0.216, p:0.71,   u:203.8, fee:0.087, hw:37500,    iL:40590,    iM:49500,    iH:58410 },
+  AE: { n:'United Arab Emirates', iso:784, ccy:'AED', e:0.44,  p:2.57,   u:400.8, fee:0.37,  hw:160000,   iL:133250,   iM:162500,   iH:191750 },
+  GB: { n:'United Kingdom',       iso:826, ccy:'GBP', e:0.17,  p:0.71,   u:337.1, fee:0.076, hw:32500,    iL:44690,    iM:54500,    iH:64310 },
+  NL: { n:'Netherlands',          iso:528, ccy:'EUR', e:0.197, p:0.69,   u:313.9, fee:0.087, hw:37500,    iL:17220,    iM:21000,    iH:24780 },
+  BE: { n:'Belgium',              iso:56,  ccy:'EUR', e:0.134, p:0.69,   u:397.0, fee:0.087, hw:37500,    iL:28290,    iM:34500,    iH:40710 },
+  AT: { n:'Austria',              iso:40,  ccy:'EUR', e:0.181, p:0.59,   u:220.0, fee:0.087, hw:37500,    iL:56785,    iM:69250,    iH:81715 },
+  CH: { n:'Switzerland',          iso:756, ccy:'CHF', e:0.20,  p:0.77,   u:259.3, fee:0.079, hw:34200,    iL:61090,    iM:74500,    iH:87910 },
+  NO: { n:'Norway',               iso:578, ccy:'NOK', e:1.01,  p:5.48,   u:169.5, fee:1.02,  hw:44650,    iL:265680,   iM:324000,   iH:382320, anomaly:'Tesla API returns a cabinet price ~10× below the global ~€33k baseline — hardware figure is likely a data error.' },
+  SE: { n:'Sweden',               iso:752, ccy:'SEK', e:1.40,  p:5.79,   u:213.9, fee:0.94,  hw:406990,   iL:257480,   iM:314000,   iH:370520 },
+  DK: { n:'Denmark',              iso:208, ccy:'DKK', e:0.84,  p:4.95,   u:228.6, fee:0.65,  hw:280000,   iL:328000,   iM:400000,   iH:472000 },
+  FI: { n:'Finland',              iso:246, ccy:'EUR', e:0.133, p:0.70,   u:127.8, fee:0.087, hw:37500,    iL:24190,    iM:29500,    iH:34810 },
+  PL: { n:'Poland',               iso:616, ccy:'PLN', e:0.45,  p:3.14,   u:413.2, fee:0.37,  hw:159000,   iL:140630,   iM:171500,   iH:202370 },
+  PT: { n:'Portugal',             iso:620, ccy:'EUR', e:0.099, p:0.66,   u:451.0, fee:0.087, hw:37500,    iL:39360,    iM:48000,    iH:56640 },
+  IE: { n:'Ireland',              iso:372, ccy:'EUR', e:0.254, p:0.72,   u:237.9, fee:0.087, hw:37500,    iL:51660,    iM:63000,    iH:74340 },
+  CZ: { n:'Czechia',              iso:203, ccy:'CZK', e:4.40,  p:13.15,  u:401.1, fee:2.11,  hw:910000,   iL:902000,   iM:1100000,  iH:1298000 },
+  HU: { n:'Hungary',              iso:348, ccy:'HUF', e:52.99, p:288.47, u:386.7, fee:31.25, hw:13480000, iL:12136000, iM:14800000, iH:17464000 },
+  GR: { n:'Greece',               iso:300, ccy:'EUR', e:0.171, p:0.62,   u:189.6, fee:0.087, hw:37500,    iL:49200,    iM:60000,    iH:70800 },
+  RO: { n:'Romania',              iso:642, ccy:'RON', e:0.80,  p:3.64,   u:263.8, fee:0.46,  hw:196700,   iL:54940,    iM:67000,    iH:79060 },
+  HR: { n:'Croatia',              iso:191, ccy:'EUR', e:0.144, p:0.76,   u:184.1, fee:0.087, hw:37500,    iL:48380,    iM:59000,    iH:69620 },
+  SK: { n:'Slovakia',             iso:703, ccy:'EUR', e:0.286, p:0.70,   u:289.1, fee:0.087, hw:37500,    iL:34604,    iM:42200,    iH:49796 },
+  SI: { n:'Slovenia',             iso:705, ccy:'EUR', e:0.14,  p:0.78,   u:223.9, fee:0.087, hw:37500,    iL:29930,    iM:36500,    iH:43070 },
+  LU: { n:'Luxembourg',           iso:442, ccy:'EUR', e:0.138, p:0.64,   u:273.6, fee:0.087, hw:37500,    iL:53300,    iM:65000,    iH:76700 },
+  LV: { n:'Latvia',               iso:428, ccy:'EUR', e:0.048, p:0.74,   u:321.0, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
+  LT: { n:'Lithuania',            iso:440, ccy:'EUR', e:0.138, p:0.74,   u:385.9, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
+  IS: { n:'Iceland',              iso:352, ccy:'ISK', e:18.38, p:107.54, u:163.2, fee:12.48, hw:5377500,  iL:4305000,  iM:5250000,  iH:6195000 },
+  IL: { n:'Israel',               iso:376, ccy:'ILS', e:0.41,  p:2.16,   u:242.8, fee:0.33,  hw:140330,   iL:105370,   iM:128500,   iH:151630 },
+  TR: { n:'Turkey',               iso:792, ccy:'TRY', e:6.20,  p:13.00,  u:375.8, fee:4.34,  hw:1869400,  iL:779000,   iM:950000,   iH:1121000 }
 };
-// ISO 3166-1 numeric id fallback (in case topojson name differs)
-const SFB_IDS = { '840':'United States of America','250':'France','724':'Spain','380':'Italy','682':'Saudi Arabia','784':'United Arab Emirates','634':'Qatar','400':'Jordan' };
-const TIER_COLOR = { calc: 'var(--accent)', avail: '#10b981' };
+// Program announced but pricing API returns HTTP 500 (not yet configured) as of harvest.
+const ANNOUNCED = { 682:'Saudi Arabia', 634:'Qatar', 400:'Jordan' };
+// Currency symbols + USD-per-unit fallback rates (used if the live FX fetch fails).
+const CCY_SYM = { USD:'$', EUR:'€', GBP:'£', CHF:'CHF ', AED:'AED ', NOK:'NOK ', SEK:'SEK ', DKK:'DKK ', PLN:'zł ', CZK:'Kč ', HUF:'Ft ', RON:'lei ', ISK:'ISK ', ILS:'₪', TRY:'₺' };
+const FX_INTL_FB = { USD:1, EUR:0.92, GBP:0.79, CHF:0.89, AED:3.67, NOK:10.8, SEK:10.5, DKK:6.85, PLN:4.0, CZK:23.2, HUF:355, RON:4.6, ISK:138, ILS:3.7, TRY:39 };
 
+// Build ISO-numeric -> INTL entry for fast map lookups.
+const INTL_BY_ISO = {};
+for (const cc in INTL) INTL_BY_ISO[INTL[cc].iso] = Object.assign({ cc }, INTL[cc]);
+
+const SFB_LIVE_COLOR = '#10b981';   // live market
+const SFB_US_COLOR   = 'var(--accent)'; // US (has per-state tool)
+const SFB_SOON_COLOR = '#fbbf24';   // announced, not yet priced
+
+// Returns { tier, name, d } for a world-atlas feature, or null.
 function sfbLookup(f) {
-  const name = f.properties && f.properties.name;
-  if (name && SFB_COUNTRIES[name]) return SFB_COUNTRIES[name];
-  const byId = SFB_IDS[String(f.id)];
-  return byId ? SFB_COUNTRIES[byId] : null;
+  const id = parseInt(f.id, 10);
+  const d = INTL_BY_ISO[id];
+  if (d) return { tier: d.us ? 'us' : 'live', name: d.n, d };
+  if (ANNOUNCED[id]) return { tier: 'soon', name: ANNOUNCED[id], d: null };
+  return null;
 }
+function tierColor(t) { return t === 'us' ? SFB_US_COLOR : t === 'soon' ? SFB_SOON_COLOR : SFB_LIVE_COLOR; }
 
 let worldData = null;
 async function loadWorldMap() {
@@ -1012,21 +1113,178 @@ function drawWorldMap() {
   svg.append('g').selectAll('path').data(feats).join('path')
     .attr('d', path)
     .attr('class', d => sfbLookup(d) ? 'country-path avail' : 'country-path')
-    .attr('fill', d => { const r = sfbLookup(d); return r ? TIER_COLOR[r.tier] : 'var(--surface3)'; })
+    .attr('fill', d => { const r = sfbLookup(d); return r ? tierColor(r.tier) : 'var(--surface3)'; })
     .on('mouseenter', function(ev, d) { const r = sfbLookup(d); if (!r) return; d3.select(this).raise(); showCountryTT(ev, r); })
     .on('mousemove', ev => moveTT(ev))
     .on('mouseleave', () => hideTT());
 }
 
 function showCountryTT(ev, r) {
-  ttEl.innerHTML = `<h3>${r.label}</h3>
-    <dl class="tt-grid">
-      <dt>Region</dt><dd>${r.region}</dd>
-      <dt>Status</dt><dd class="pos">Available</dd>
-    </dl>
-    <div class="tt-pb" style="color:${TIER_COLOR[r.tier]}">${r.note}</div>`;
+  const col = tierColor(r.tier);
+  if (r.tier === 'soon') {
+    ttEl.innerHTML = `<h3>${r.name}</h3>
+      <div class="tt-pb" style="color:${col}">Program announced · pricing not yet live</div>`;
+  } else {
+    const d = r.d, c = intlCalc(d);
+    const pb = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
+    const usd = v => '$' + Math.round(toUSD(v, d.ccy)).toLocaleString();
+    ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>
+      <dl class="tt-grid">
+        <dt>Energy</dt><dd>${cmpSym(d.ccy)}${d.e}/kWh</dd>
+        <dt>Sell Price</dt><dd>${cmpSym(d.ccy)}${d.p}/kWh</dd>
+        <dt>Utilization</dt><dd>${d.u.toFixed(0)} kWh/day</dd>
+        <dt>Tesla Fee</dt><dd>${cmpSym(d.ccy)}${d.fee}/kWh</dd>
+        <dt>Hardware/Stall</dt><dd>${usd(d.hw)}</dd>
+        <dt>Install (Med)</dt><dd>${usd(d.iM)}</dd>
+        <dt>Profit/Stall/Yr</dt><dd class="${c.profit > 0 ? 'pos' : 'neg'}">${usd(c.profit)}</dd>
+      </dl>
+      <div class="tt-pb" style="color:${col}">Payback: ${pb}${d.us ? ' · 50-state tool below' : ''}${d.anomaly ? ' · ⚠ hardware anomaly' : ''}</div>`;
+  }
   ttEl.classList.add('show');
   moveTT(ev);
+}
+function cmpSym(ccy) { return CCY_SYM[ccy] || (ccy + ' '); }
+
+// ===== INTERNATIONAL COMPARISON =====
+let cmpDisplay = 'USD';   // 'USD' (normalized) or 'NATIVE'
+let cmpInstall = 'iM';    // install tier key
+let cmpMetric  = 'payback';
+let cmpSortCol = 'payback';
+let cmpSortDir = 'asc';
+let cmpChart = null;
+
+function fxOf(ccy) { return fxRates[ccy] != null ? fxRates[ccy] : (FX_INTL_FB[ccy] || 1); }
+function toUSD(v, ccy) { return v / fxOf(ccy); }
+
+// ROI per stall in native currency (same model as the US analysis).
+function intlCalc(d) {
+  const kwhYr = d.u * 365;
+  const revenue = d.p * ENERGY_LOSS * kwhYr;
+  const cost = (d.e + d.fee) * kwhYr;
+  const profit = revenue - cost;
+  const install = d[cmpInstall];
+  const capex = d.hw + install;
+  const payback = profit > 0 ? capex / profit : 999;
+  return { kwhYr, revenue, cost, profit, install, capex, payback };
+}
+// Format a native-currency amount per the active display mode.
+function cmpMoney(vNative, ccy, kind) {
+  // kind: undefined = whole money, 'rate' = per-kWh (decimals)
+  if (cmpDisplay === 'USD') {
+    const u = toUSD(vNative, ccy);
+    return kind === 'rate' ? '$' + u.toFixed(3) : '$' + Math.round(u).toLocaleString();
+  }
+  const sym = cmpSym(ccy);
+  return kind === 'rate' ? sym + vNative.toFixed(3) : sym + Math.round(vNative).toLocaleString();
+}
+function cmpPayColor(pb) {
+  if (pb < 3) return colors.excellent; if (pb < 5) return colors.good;
+  if (pb < 8) return colors.moderate; if (pb < 15) return colors.marginal;
+  if (pb < 30) return colors.poor; return colors.terrible;
+}
+
+function cmpRows() {
+  return Object.keys(INTL).map(cc => {
+    const d = INTL[cc];
+    const c = intlCalc(d);
+    return {
+      cc, n: d.n, ccy: d.ccy, us: d.us, anomaly: d.anomaly,
+      e: d.e, p: d.p, u: d.u, fee: d.fee, hw: d.hw, install: c.install, capex: c.capex,
+      profit: c.profit, payback: c.payback,
+      // USD-normalized values for charting/sorting consistency
+      hwUsd: toUSD(d.hw, d.ccy), capexUsd: toUSD(c.capex, d.ccy), profitUsd: toUSD(c.profit, d.ccy)
+    };
+  });
+}
+
+function renderCompare() {
+  if (!document.getElementById('cmpBody')) return;
+  const rows = cmpRows();
+  // Sort
+  rows.sort((a, b) => {
+    if (cmpSortCol === 'n') return cmpSortDir === 'asc' ? a.n.localeCompare(b.n) : b.n.localeCompare(a.n);
+    const va = a[cmpSortCol], vb = b[cmpSortCol];
+    return cmpSortDir === 'asc' ? va - vb : vb - va;
+  });
+
+  // Table
+  const tb = document.getElementById('cmpBody');
+  tb.innerHTML = rows.map(r => {
+    const col = cmpPayColor(r.payback);
+    const pb = r.payback > 100 ? '100+' : r.payback.toFixed(1);
+    const warn = r.anomaly ? ' <span class="anomaly-mark" title="Hardware data anomaly">&#9888;</span>' : '';
+    const flag = r.us ? ' <span style="color:var(--accent);font-size:9px">★ 50-state tool</span>' : '';
+    return `<tr>
+      <td><div class="state-cell"><span class="color-dot" style="background:${col}"></span>${r.n}${warn}${flag}</div></td>
+      <td class="num">${cmpMoney(r.hw, r.ccy)}</td>
+      <td class="num">${cmpMoney(r.install, r.ccy)}</td>
+      <td class="num">${cmpMoney(r.capex, r.ccy)}</td>
+      <td class="num">${cmpMoney(r.fee, r.ccy, 'rate')}</td>
+      <td class="num">${cmpMoney(r.e, r.ccy, 'rate')}</td>
+      <td class="num">${cmpMoney(r.p, r.ccy, 'rate')}</td>
+      <td class="num">${r.u.toFixed(0)}</td>
+      <td class="num ${r.profit > 0 ? 'pos' : 'neg'}">${cmpMoney(r.profit, r.ccy)}</td>
+      <td class="num" style="color:${col};font-weight:700">${pb} yr</td>
+    </tr>`;
+  }).join('');
+  document.querySelectorAll('#cmpTable th').forEach(th => {
+    th.classList.remove('sorted-asc', 'sorted-desc');
+    if (th.dataset.c === cmpSortCol) th.classList.add('sorted-' + cmpSortDir);
+  });
+
+  // Chart — always sorted by the chosen metric for readability
+  const metricVal = r => cmpMetric === 'payback' ? Math.min(r.payback, 60)
+    : cmpMetric === 'capexUsd' ? r.capexUsd
+    : cmpMetric === 'profitUsd' ? r.profitUsd : r.hwUsd;
+  const asc = cmpMetric === 'payback' || cmpMetric === 'capexUsd' || cmpMetric === 'hwUsd';
+  const chartRows = [...rows].sort((a, b) => asc ? metricVal(a) - metricVal(b) : metricVal(b) - metricVal(a));
+  const labels = chartRows.map(r => r.n + (r.anomaly ? ' ⚠' : ''));
+  const data = chartRows.map(metricVal);
+  const barColors = chartRows.map(r => cmpMetric === 'payback' ? cmpPayColor(r.payback) : (r.us ? '#60a5fa' : '#10b981'));
+  const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
+  const textColor = isDark ? '#8b949e' : '#6b7280';
+  const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
+  const metricLabel = { payback: 'Payback (years)', capexUsd: 'CapEx / stall (USD)', profitUsd: 'Profit / stall / yr (USD)', hwUsd: 'Hardware / stall (USD)' }[cmpMetric];
+
+  if (cmpChart) cmpChart.destroy();
+  cmpChart = new Chart(document.getElementById('cmpChart'), {
+    type: 'bar',
+    data: { labels, datasets: [{ label: metricLabel, data, backgroundColor: barColors, borderRadius: 3, barThickness: 'flex', maxBarThickness: 16 }] },
+    options: {
+      indexAxis: 'y', responsive: true, maintainAspectRatio: false,
+      plugins: {
+        legend: { display: false },
+        tooltip: { callbacks: { label: ctx => {
+          const r = chartRows[ctx.dataIndex];
+          if (cmpMetric === 'payback') return (r.payback > 100 ? '100+' : r.payback.toFixed(1)) + ' yr payback';
+          return '$' + Math.round(ctx.parsed.x).toLocaleString();
+        } } }
+      },
+      scales: {
+        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => cmpMetric === 'payback' ? v + 'y' : (v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v) }, grid: { color: gridColor }, title: { display: true, text: metricLabel, color: textColor, font: { size: 11 } } },
+        y: { ticks: { color: textColor, font: { size: 9 }, autoSkip: false }, grid: { display: false } }
+      }
+    }
+  });
+
+  // FX note
+  const fxEl = document.getElementById('cmpFx');
+  if (fxEl) fxEl.textContent = cmpDisplay === 'USD' ? `Converted at ${fxLive ? 'live' : 'approx'} FX (open.er-api.com).` : 'Showing each market in its own currency.';
+}
+
+function initCompare() {
+  if (!document.getElementById('cmpBody')) return;
+  document.getElementById('cmpDisplay').addEventListener('change', e => { cmpDisplay = e.target.value; renderCompare(); });
+  document.getElementById('cmpInstallSel').addEventListener('change', e => { cmpInstall = e.target.value; renderCompare(); });
+  document.getElementById('cmpMetricSel').addEventListener('change', e => { cmpMetric = e.target.value; renderCompare(); });
+  document.querySelectorAll('#cmpTable th.sortable').forEach(th => {
+    th.addEventListener('click', () => {
+      const c = th.dataset.c;
+      if (cmpSortCol === c) cmpSortDir = cmpSortDir === 'asc' ? 'desc' : 'asc';
+      else { cmpSortCol = c; cmpSortDir = c === 'n' ? 'asc' : (c === 'payback' ? 'asc' : 'desc'); }
+      renderCompare();
+    });
+  });
 }
 
 // ===== CURRENCY WIRING =====
@@ -1055,25 +1313,30 @@ function initCurrencySelect() {
   sel.addEventListener('change', e => setCurrency(e.target.value));
 }
 async function loadFX() {
-  // Seed fallbacks immediately so currency switching works even if the fetch is slow/blocked.
+  // Seed fallbacks immediately so conversions work even if the fetch is slow/blocked.
   for (const [c, v] of Object.entries(FX_FALLBACK)) if (fxRates[c] == null) fxRates[c] = v;
+  for (const [c, v] of Object.entries(FX_INTL_FB)) if (fxRates[c] == null) fxRates[c] = v;
   try {
     const r = await fetch('https://open.er-api.com/v6/latest/USD');
     const j = await r.json();
     if (j && j.result === 'success' && j.rates) {
-      for (const c of Object.keys(CURRENCIES)) if (j.rates[c] != null) fxRates[c] = j.rates[c];
+      for (const c in j.rates) fxRates[c] = j.rates[c]; // store ALL currencies (intl comparison needs them)
       fxLive = true;
       fxAsOf = j.time_last_update_utc || null;
     }
   } catch (e) { fxLive = false; }
   if (currency !== 'USD') { fxRate = fxRates[currency] || 1; renderAll(); updateStaticMoney(); }
   updateFxNote();
+  drawWorldMap();    // refresh tooltips with live FX
+  renderCompare();   // refresh USD-normalized comparison with live FX
 }
 
 // ===== INIT =====
 initChartSelect();
 initCurrencySelect();
+initCompare();
 updateStaticMoney();
+renderCompare();
 loadFX();
 loadWorldMap();
 loadMap().then(() => {
