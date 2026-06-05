@@ -1488,7 +1488,7 @@ function renderCompare() {
   tb.innerHTML = rows.map(r => {
     const col = cmpPayColor(r.payback);
     const pb = r.payback > 100 ? '100+' : r.payback.toFixed(1);
-    const warn = r.anomaly ? ' <span class="anomaly-mark" title="Hardware data anomaly">&#9888;</span>' : '';
+    const warn = r.anomaly ? ` <span class="anomaly-mark" data-anomaly="${r.anomaly}" style="cursor:help">&#9888;</span>` : '';
     const flag = r.us ? ' <span style="color:var(--accent);font-size:9px">★ 50-state tool</span>'
       : LAUNCHED.has(r.cc) ? ' <span style="color:#10b981;font-size:9px" title="Public configurator launched">● live</span>'
       : ' <span style="color:#a78bfa;font-size:9px" title="Priced in API, public page not launched">○ priced</span>';
@@ -1560,6 +1560,19 @@ function renderCompare() {
 
 function initCompare() {
   if (!document.getElementById('cmpBody')) return;
+  // Hover tooltip for the ⚠ anomaly markers (delegated, since rows are re-rendered).
+  const cmpTable = document.getElementById('cmpTable');
+  cmpTable.addEventListener('mouseover', e => {
+    const m = e.target.closest('.anomaly-mark');
+    if (!m) return;
+    const cc = m.closest('tr') && m.closest('tr').dataset.cc;
+    const name = cc && INTL[cc] ? INTL[cc].n : 'Data';
+    ttEl.innerHTML = `<h3>⚠ ${name} — data anomaly</h3><div style="font-size:11px;line-height:1.55;color:var(--text-dim)">${m.dataset.anomaly}</div>`;
+    ttEl.classList.add('show');
+    moveTT(e);
+  });
+  cmpTable.addEventListener('mousemove', e => { if (e.target.closest('.anomaly-mark')) moveTT(e); });
+  cmpTable.addEventListener('mouseout', e => { if (e.target.closest('.anomaly-mark')) hideTT(); });
   document.getElementById('cmpDisplay').addEventListener('change', e => { cmpDisplay = e.target.value; renderCompare(); });
   document.getElementById('cmpInstallSel').addEventListener('change', e => setInstallTier(e.target.value));
   document.getElementById('cmpMetricSel').addEventListener('change', e => { cmpMetric = e.target.value; renderCompare(); });
