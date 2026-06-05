@@ -202,7 +202,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .avail-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
 .avail-head h2 { font-size: 16px; font-weight: 600; }
 .avail-count { background: var(--accent-dim); color: var(--accent); font-family: var(--font-mono); font-size: 11px; font-weight: 600; padding: 3px 9px; border-radius: 5px; }
-.avail-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; max-width: 780px; }
+.avail-sub { font-size: 12px; color: var(--text-dim); line-height: 1.5; margin-bottom: 14px; }
 #worldMap svg { width: 100%; height: auto; display: block; }
 .country-path { stroke: var(--map-stroke); stroke-width: var(--cw, 0.65); stroke-linejoin: round; transition: filter 0.12s; }
 .country-path.avail { cursor: pointer; }
@@ -262,8 +262,10 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <button data-view="us" class="zbtn">🇺🇸 United States</button>
       <select id="mapDisplay" class="map-ccy" title="Tooltip currency"><option value="USD" selected>$ USD</option><option value="EUR">€ EUR</option><option value="NATIVE">Native</option></select>
     </div>
-    <div id="viewAvail">
-      <div class="kpi-bar" style="margin:14px 0 4px">
+  </div>
+
+  <div id="viewAvail">
+      <div class="kpi-bar">
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
@@ -283,7 +285,6 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
         <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not a market</div>
       </div>
     </div>
-  </div>
 
   <div id="viewUS" style="display:none">
   <div class="kpi-bar">
