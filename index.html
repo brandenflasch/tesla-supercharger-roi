@@ -258,6 +258,12 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <span class="avail-count" id="availCount">31 markets</span>
     </div>
     <div class="avail-sub">Live-market map derived directly from Tesla's pricing API (countries that return real pricing). The program is overwhelmingly European; the U.S. is the only market with per-state pricing and the detailed 50-state tool below. Saudi Arabia, Qatar &amp; Jordan are announced but their pricing isn't live yet.</div>
+    <div class="kpi-bar" style="margin:14px 0 4px">
+      <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
+      <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
+      <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
+      <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
+    </div>
     <div class="map-zoom">
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="us" class="zbtn">🇺🇸 United States</button>
@@ -1264,7 +1270,23 @@ function cmpRows() {
   });
 }
 
+// Global market KPIs (payback is currency-independent, so these need no FX).
+function renderGlobalKpis() {
+  if (!document.getElementById('gkpi-med')) return;
+  const rows = cmpRows();
+  const pbs = rows.map(r => r.payback).sort((a, b) => a - b);
+  const med = pbs[Math.floor(pbs.length / 2)];
+  const best = rows.reduce((a, b) => a.payback < b.payback ? a : b);
+  const worst = rows.reduce((a, b) => a.payback > b.payback ? a : b);
+  const under = rows.filter(r => r.payback < 3).length;
+  document.getElementById('gkpi-med').textContent = med.toFixed(1) + ' yr';
+  document.getElementById('gkpi-best').textContent = best.n + ' · ' + best.payback.toFixed(1) + 'y';
+  document.getElementById('gkpi-worst').textContent = worst.n + ' · ' + worst.payback.toFixed(0) + 'y';
+  document.getElementById('gkpi-fast').textContent = under + ' / ' + rows.length;
+}
+
 function renderCompare() {
+  renderGlobalKpis();
   if (!document.getElementById('cmpBody')) return;
   const rows = cmpRows();
   // Sort — money columns sort by their normalized (USD/EUR) value, not native,
