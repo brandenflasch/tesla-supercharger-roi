@@ -316,11 +316,29 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   </div>
 
   <div class="controls anim" style="--i:5">
-    <div class="cg"><label>Color By</label><select id="selMetric"><option value="payback" selected>Payback Period</option><option value="profit">Annual Profit / Post</option><option value="margin">Gross Margin $/kWh</option><option value="util">Utilization kWh/day</option><option value="energy">Utility Rate $/kWh</option><option value="sellrate">Sell Rate $/kWh</option></select></div>
-    <div class="cg"><label>Installation Cost</label><select id="selInstall"><option value="45000">Low ($45K)</option><option value="55000" selected>Medium ($55K)</option><option value="65000">High ($65K)</option><option value="custom">Custom</option></select><input type="number" id="customInstall" style="display:none;width:100px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="$/post" value="55000"></div>
-    <div class="cg"><label>Post Count</label><select id="selPosts"><option value="4">4 Posts</option><option value="8" selected>8 Posts</option><option value="16">16 Posts</option><option value="24">24 Posts</option><option value="custom">Custom</option></select><input type="number" id="customPosts" style="display:none;width:80px;margin-top:4px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="# posts" min="1" value="8"></div>
-    <div class="cg"><label>Tesla PPU Fee</label><div class="sv" id="ppuFee" style="padding-top:4px">$0.10/kWh (fixed)</div></div>
-    <div class="cg"><label>Display Currency</label><select id="selCurrency"></select><div class="sv" id="fxNote" style="text-align:left;min-width:0;margin-top:3px;color:var(--text-muted)">Base currency</div></div>
+    <div class="ctlgrp"><label>Color By</label><div class="seg" id="segUsMetric">
+      <button class="segbtn active" data-v="payback">Payback</button>
+      <button class="segbtn" data-v="profit">Profit/Post</button>
+      <button class="segbtn" data-v="margin">Margin</button>
+      <button class="segbtn" data-v="util">Utilization</button>
+      <button class="segbtn" data-v="energy">Utility Rate</button>
+      <button class="segbtn" data-v="sellrate">Sell Rate</button>
+    </div></div>
+    <div class="ctlgrp"><label>Install Cost</label><div class="seg" id="segUsInstall">
+      <button class="segbtn" data-v="45000">Low $45K</button>
+      <button class="segbtn active" data-v="55000">Med $55K</button>
+      <button class="segbtn" data-v="65000">High $65K</button>
+      <button class="segbtn" data-v="custom">Custom</button>
+    </div><input type="number" id="customInstall" style="display:none;width:100px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="$/post" value="55000"></div>
+    <div class="ctlgrp"><label>Posts</label><div class="seg" id="segUsPosts">
+      <button class="segbtn" data-v="4">4</button>
+      <button class="segbtn active" data-v="8">8</button>
+      <button class="segbtn" data-v="16">16</button>
+      <button class="segbtn" data-v="24">24</button>
+      <button class="segbtn" data-v="custom">Custom</button>
+    </div><input type="number" id="customPosts" style="display:none;width:80px;background:var(--surface2);color:var(--text);border:1px solid var(--border-bright);border-radius:6px;padding:5px 8px;font-size:12px;" placeholder="# posts" min="1" value="8"></div>
+    <div class="ctlgrp"><label>Tesla PPU Fee</label><div class="sv" id="ppuFee">$0.10/kWh (fixed)</div></div>
+    <div class="ctlgrp"><label>Currency</label><div class="seg" id="segUsCcy"></div><div class="sv" id="fxNote" style="color:var(--text-muted)">Base currency</div></div>
   </div>
 
   <div class="main">
@@ -380,9 +398,25 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     </div>
     <div class="cmp-sub">Real per-country hardware, install, fee and rate data from Tesla's pricing API, run through the same ROI model as the US analysis (per stall, 8-post site assumed for cabinet sharing). Pricing is national outside the US. <strong>Payback is currency-independent</strong> (CapEx and profit scale together), so it compares directly; monetary columns normalize to USD or EUR at live FX, or show each market's native currency.</div>
     <div class="cmp-controls">
-      <div class="cg"><label>Display</label><select id="cmpDisplay"><option value="USD" selected>USD (normalized)</option><option value="EUR">EUR (normalized)</option><option value="NATIVE">Native currency</option></select></div>
-      <div class="cg"><label>Install Tier</label><select id="cmpInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
-      <div class="cg"><label>Chart Metric</label><select id="cmpMetricSel"><option value="payback" selected>Payback (yrs)</option><option value="capexUsd">CapEx / stall</option><option value="profitUsd">Profit / stall / yr</option><option value="hwUsd">Hardware / stall</option><option value="eUsd">Energy cost /kWh (buy)</option><option value="pUsd">Sell price /kWh (sell)</option><option value="u">Utilization</option></select></div>
+      <div class="ctlgrp"><label>Display</label><div class="seg" id="segCmpDisplay">
+        <button class="segbtn active" data-v="USD">$ USD</button>
+        <button class="segbtn" data-v="EUR">€ EUR</button>
+        <button class="segbtn" data-v="NATIVE">Native</button>
+      </div></div>
+      <div class="ctlgrp"><label>Install Tier</label><div class="seg" id="segCmpInstall">
+        <button class="segbtn" data-v="iL">Low</button>
+        <button class="segbtn active" data-v="iM">Medium</button>
+        <button class="segbtn" data-v="iH">High</button>
+      </div></div>
+      <div class="ctlgrp"><label>Chart Metric</label><div class="seg" id="segCmpMetric">
+        <button class="segbtn active" data-v="payback">Payback</button>
+        <button class="segbtn" data-v="capexUsd">CapEx</button>
+        <button class="segbtn" data-v="profitUsd">Profit</button>
+        <button class="segbtn" data-v="hwUsd">Hardware</button>
+        <button class="segbtn" data-v="eUsd">Energy</button>
+        <button class="segbtn" data-v="pUsd">Sell</button>
+        <button class="segbtn" data-v="u">Utilization</button>
+      </div></div>
     </div>
     <div class="cmp-chart-box"><canvas id="cmpChart"></canvas></div>
     <div class="table-scroll" style="margin-top:18px">
@@ -1038,17 +1072,12 @@ function renderAll() {
 }
 
 // ===== CONTROLS =====
-document.getElementById('selMetric').addEventListener('change', e => { metric = e.target.value; renderAll(); });
+initSeg('segUsMetric', v => { metric = v; renderAll(); });
 
-document.getElementById('selInstall').addEventListener('change', e => {
+initSeg('segUsInstall', v => {
   const ci = document.getElementById('customInstall');
-  if (e.target.value === 'custom') {
-    ci.style.display = 'block';
-    installPerPost = parseInt(ci.value) || 55000;
-  } else {
-    ci.style.display = 'none';
-    installPerPost = parseInt(e.target.value);
-  }
+  if (v === 'custom') { ci.style.display = 'inline-block'; installPerPost = parseInt(ci.value) || 55000; }
+  else { ci.style.display = 'none'; installPerPost = parseInt(v); }
   renderAll();
 });
 document.getElementById('customInstall').addEventListener('input', e => {
@@ -1056,15 +1085,10 @@ document.getElementById('customInstall').addEventListener('input', e => {
   renderAll();
 });
 
-document.getElementById('selPosts').addEventListener('change', e => {
+initSeg('segUsPosts', v => {
   const cp = document.getElementById('customPosts');
-  if (e.target.value === 'custom') {
-    cp.style.display = 'block';
-    postCount = parseInt(cp.value) || 8;
-  } else {
-    cp.style.display = 'none';
-    postCount = parseInt(e.target.value);
-  }
+  if (v === 'custom') { cp.style.display = 'inline-block'; postCount = parseInt(cp.value) || 8; }
+  else { cp.style.display = 'none'; postCount = parseInt(v); }
   renderAll();
 });
 document.getElementById('customPosts').addEventListener('input', e => {
@@ -1193,11 +1217,9 @@ function setMapView(v) {
   const title = document.getElementById('mapTitle');
   const sub = document.getElementById('mapSub');
   const badge = document.getElementById('availCount');
-  const ccy = document.getElementById('mapDisplay');
   if (v === 'us') {
     if (va) va.style.display = 'none';
     if (vu) vu.style.display = 'block';
-    if (ccy) ccy.style.display = 'none';
     if (title) title.textContent = 'United States — State-by-State ROI';
     if (sub) sub.innerHTML = US_SUB;
     if (badge) badge.textContent = '50 states + DC';
@@ -1206,7 +1228,6 @@ function setMapView(v) {
   } else {
     if (vu) vu.style.display = 'none';
     if (va) va.style.display = 'block';
-    if (ccy) ccy.style.display = '';
     if (title) title.textContent = 'Where Supercharger for Business Is Live';
     if (sub) sub.innerHTML = AVAIL_SUB;
     if (badge) badge.textContent = '31 markets';
@@ -1405,8 +1426,7 @@ function renderAvailLegend() {
 // Install tier is shared between the availability map and the comparison table.
 function setInstallTier(tier) {
   cmpInstall = tier;
-  const b = document.getElementById('cmpInstallSel'); if (b) b.value = tier;
-  document.querySelectorAll('#segInstall .segbtn').forEach(x => x.classList.toggle('active', x.dataset.v === tier));
+  ['#segInstall', '#segCmpInstall'].forEach(sel => document.querySelectorAll(sel + ' .segbtn').forEach(x => x.classList.toggle('active', x.dataset.v === tier)));
   renderCompare();                              // KPIs, market list, comparison table + chart
   if (mapMetric !== 'tier') drawWorldMap();     // recolor the map if it's showing a metric
 }
@@ -1603,9 +1623,9 @@ function initCompare() {
   });
   cmpTable.addEventListener('mousemove', e => { if (e.target.closest('.anomaly-mark')) moveTT(e); });
   cmpTable.addEventListener('mouseout', e => { if (e.target.closest('.anomaly-mark')) hideTT(); });
-  document.getElementById('cmpDisplay').addEventListener('change', e => { cmpDisplay = e.target.value; renderCompare(); });
-  document.getElementById('cmpInstallSel').addEventListener('change', e => setInstallTier(e.target.value));
-  document.getElementById('cmpMetricSel').addEventListener('change', e => { cmpMetric = e.target.value; renderCompare(); });
+  initSeg('segCmpDisplay', v => { cmpDisplay = v; renderCompare(); });
+  initSeg('segCmpInstall', v => setInstallTier(v));
+  initSeg('segCmpMetric', v => { cmpMetric = v; renderCompare(); });
   document.querySelectorAll('#cmpTable th.sortable').forEach(th => {
     th.addEventListener('click', () => {
       const c = th.dataset.c;
@@ -1661,11 +1681,13 @@ function setCurrency(c) {
   updateStaticMoney();
   updateFxNote();
 }
+const CCY_BTN = { USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', CAD: 'CA$', SAR: 'SAR', AED: 'AED', QAR: 'QAR', JOD: 'JOD' };
 function initCurrencySelect() {
-  const sel = document.getElementById('selCurrency');
-  sel.innerHTML = Object.entries(CURRENCIES)
-    .map(([c, d]) => `<option value="${c}"${c === 'USD' ? ' selected' : ''}>${d.label}</option>`).join('');
-  sel.addEventListener('change', e => setCurrency(e.target.value));
+  const g = document.getElementById('segUsCcy');
+  if (!g) return;
+  g.innerHTML = Object.keys(CURRENCIES)
+    .map(c => `<button class="segbtn${c === 'USD' ? ' active' : ''}" data-v="${c}" title="${CURRENCIES[c].label}">${CCY_BTN[c] || c}</button>`).join('');
+  initSeg('segUsCcy', v => setCurrency(v));
 }
 async function loadFX() {
   // Seed fallbacks immediately so conversions work even if the fetch is slow/blocked.
