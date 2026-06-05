@@ -230,7 +230,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle theme">☀</button>
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 31 markets priced in Tesla's API</div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 31 priced · 11 publicly live</div>
     <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;4,&nbsp;2026</span></div>
     <div class="socials">
       <a href="https://bflasch.com" target="_blank" rel="noopener" title="bflasch.com"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>
@@ -248,37 +248,41 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     <div class="ps"><div class="ps-v">99.9%+</div><div class="ps-l">Network Uptime</div></div>
     <div class="ps"><div class="ps-v">#1</div><div class="ps-l">N. America &amp; UK</div></div>
     <div class="ps"><div class="ps-v">10+/day</div><div class="ps-l">US Sessions/Stall</div></div>
-    <div class="ps"><div class="ps-v">31</div><div class="ps-l">Markets Priced</div></div>
+    <div class="ps"><div class="ps-v">11 / 31</div><div class="ps-l">Live / Priced</div></div>
   </div>
 
   <!-- Global Availability Map -->
   <div class="avail-section anim" style="--i:2">
     <div class="avail-head">
-      <h2>Where Supercharger for Business Is Live</h2>
+      <h2 id="mapTitle">Where Supercharger for Business Is Live</h2>
       <span class="avail-count" id="availCount">31 markets</span>
     </div>
-    <div class="avail-sub">Every market with pricing configured in Tesla's API (countries that return real pricing). The program is overwhelmingly European; the U.S. is the only market with per-state pricing and the detailed 50-state tool below. Note: pricing in the API doesn't guarantee the public configurator is launched in that market. Saudi Arabia, Qatar &amp; Jordan are announced but return no pricing yet.</div>
-    <div class="kpi-bar" style="margin:14px 0 4px">
-      <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
-      <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
-      <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
-      <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
-    </div>
+    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 4). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).</div>
     <div class="map-zoom">
       <button data-view="world" class="zbtn active">🌍 World</button>
-      <button data-view="us" class="zbtn">🇺🇸 United States</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
+      <button data-view="us" class="zbtn">🇺🇸 United States</button>
       <select id="mapDisplay" class="map-ccy" title="Tooltip currency"><option value="USD" selected>$ USD</option><option value="EUR">€ EUR</option><option value="NATIVE">Native</option></select>
     </div>
-    <div class="map-box"><div id="worldMap"></div></div>
-    <div class="legend" style="margin-top:12px">
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; per-state tool</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Priced in API</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Announced, not yet priced</div>
-      <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not a market</div>
+    <div id="viewAvail">
+      <div class="kpi-bar" style="margin:14px 0 4px">
+        <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
+        <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
+        <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
+        <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
+      </div>
+      <div class="map-box"><div id="worldMap"></div></div>
+      <div class="legend" style="margin-top:12px">
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--accent)"></div>U.S. &mdash; per-state tool</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#10b981"></div>Publicly live (page + pricing) &mdash; 11</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#a78bfa"></div>Priced in API, no public page &mdash; 20</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:#fbbf24"></div>Announced, not priced</div>
+        <div class="legend-item"><div class="legend-swatch" style="background:var(--surface3)"></div>Not a market</div>
+      </div>
     </div>
   </div>
 
+  <div id="viewUS" style="display:none">
   <div class="kpi-bar">
     <div class="kpi anim-s" style="--i:1"><div class="kpi__val kpi__val--accent" id="kpi-med">--</div><div class="kpi__label">Median Payback</div></div>
     <div class="kpi anim-s" style="--i:2"><div class="kpi__val kpi__val--green" id="kpi-best">--</div><div class="kpi__label">Best State</div></div>
@@ -341,6 +345,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       </table>
     </div>
   </div>
+  </div><!-- /viewUS -->
 
   <!-- International Price & ROI Comparison -->
   <div class="cmp-section anim" style="--i:13">
@@ -1109,25 +1114,30 @@ const FX_INTL_FB = { USD:1, EUR:0.92, GBP:0.79, CHF:0.89, AED:3.67, NOK:10.8, SE
 const INTL_BY_ISO = {};
 for (const cc in INTL) INTL_BY_ISO[INTL[cc].iso] = Object.assign({ cc }, INTL[cc]);
 
-const SFB_LIVE_COLOR = '#10b981';   // live market
-const SFB_US_COLOR   = 'var(--accent)'; // US (has per-state tool)
-const SFB_SOON_COLOR = '#fbbf24';   // announced, not yet priced
+// Markets with a publicly-launched configurator page (verified 2026-06-04 — the rest
+// return pricing from the API but their public /supercharger-for-business page 404s).
+const LAUNCHED = new Set(['US','DE','FR','ES','IT','GB','NL','BE','AT','NO','SE']);
+const SFB_LIVE_COLOR   = '#10b981';     // publicly live (page + pricing)
+const SFB_PRICED_COLOR = '#a78bfa';     // priced in API, no public page yet
+const SFB_US_COLOR     = 'var(--accent)'; // US (has per-state tool)
+const SFB_SOON_COLOR   = '#fbbf24';     // announced, not priced
 
 // Returns { tier, name, d } for a world-atlas feature, or null.
 function sfbLookup(f) {
   const id = parseInt(f.id, 10);
   const d = INTL_BY_ISO[id];
-  if (d) return { tier: d.us ? 'us' : 'live', name: d.n, d };
+  if (d) return { tier: d.us ? 'us' : (LAUNCHED.has(d.cc) ? 'live' : 'priced'), name: d.n, d };
   if (ANNOUNCED[id]) return { tier: 'soon', name: ANNOUNCED[id], d: null };
   return null;
 }
-function tierColor(t) { return t === 'us' ? SFB_US_COLOR : t === 'soon' ? SFB_SOON_COLOR : SFB_LIVE_COLOR; }
+function tierColor(t) { return t === 'us' ? SFB_US_COLOR : t === 'live' ? SFB_LIVE_COLOR : t === 'priced' ? SFB_PRICED_COLOR : SFB_SOON_COLOR; }
 
 let worldData = null;
 let mapView = 'world';
 let mapDisplay = 'USD';   // map tooltip currency: 'USD' | 'EUR' | 'NATIVE'
-// [west, east, south, north] geographic bounding boxes for the zoom presets.
-const MAP_BBOX = { us: [-127, -66, 24, 50], emea: [-25, 60, 13, 73] };
+// [west, east, south, north] geographic bounding box for the EMEA zoom preset.
+// 'us' is no longer a world-map zoom — it switches to the 50-state ROI view.
+const MAP_BBOX = { emea: [-25, 60, 13, 73] };
 // Thinner strokes when zoomed (countries are larger, so borders stay crisp not chunky).
 const MAP_CW = { world: 0.65, us: 0.4, emea: 0.35 };
 // A 5×5 MultiPoint grid over the bbox. Fitting to points (not a polygon) avoids
@@ -1143,10 +1153,38 @@ async function loadWorldMap() {
   worldData = await resp.json();
   drawWorldMap();
 }
+const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 4). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).`;
+const US_SUB = `Per-state ROI across all 50 states + DC, from Tesla's US pricing. Hover any state for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
+
+// The three view buttons drive ONE map area: World/EMEA show the availability map
+// (+ global KPIs); United States swaps in the 50-state ROI choropleth and its tools.
 function setMapView(v) {
   mapView = v;
   document.querySelectorAll('.zbtn').forEach(b => b.classList.toggle('active', b.dataset.view === v));
-  drawWorldMap();
+  const va = document.getElementById('viewAvail');
+  const vu = document.getElementById('viewUS');
+  const title = document.getElementById('mapTitle');
+  const sub = document.getElementById('mapSub');
+  const badge = document.getElementById('availCount');
+  const ccy = document.getElementById('mapDisplay');
+  if (v === 'us') {
+    if (va) va.style.display = 'none';
+    if (vu) vu.style.display = 'block';
+    if (ccy) ccy.style.display = 'none';
+    if (title) title.textContent = 'United States — State-by-State ROI';
+    if (sub) sub.innerHTML = US_SUB;
+    if (badge) badge.textContent = '50 states + DC';
+    drawMap();      // (re)render the US choropleth now that it's visible (correct width)
+    renderChart();  // (re)size the 15-year chart (Chart.js needs a visible container)
+  } else {
+    if (vu) vu.style.display = 'none';
+    if (va) va.style.display = 'block';
+    if (ccy) ccy.style.display = '';
+    if (title) title.textContent = 'Where Supercharger for Business Is Live';
+    if (sub) sub.innerHTML = AVAIL_SUB;
+    if (badge) badge.textContent = '31 markets';
+    drawWorldMap();
+  }
 }
 function initMapZoom() {
   document.querySelectorAll('.zbtn').forEach(b => b.addEventListener('click', () => setMapView(b.dataset.view)));
@@ -1194,7 +1232,8 @@ function showCountryTT(ev, r) {
     const pb = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
     const m = v => fmtMoneyIn(v, d.ccy, mapDisplay);
     const mr = v => fmtMoneyIn(v, d.ccy, mapDisplay, 'rate');
-    ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>
+    const status = r.tier === 'priced' ? `<span class="warn">Priced in API · public configurator not launched</span>` : '';
+    ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>${status}
       <dl class="tt-grid">
         <dt>Energy</dt><dd>${mr(d.e)}/kWh</dd>
         <dt>Sell Price</dt><dd>${mr(d.p)}/kWh</dd>
@@ -1304,7 +1343,9 @@ function renderCompare() {
     const col = cmpPayColor(r.payback);
     const pb = r.payback > 100 ? '100+' : r.payback.toFixed(1);
     const warn = r.anomaly ? ' <span class="anomaly-mark" title="Hardware data anomaly">&#9888;</span>' : '';
-    const flag = r.us ? ' <span style="color:var(--accent);font-size:9px">★ 50-state tool</span>' : '';
+    const flag = r.us ? ' <span style="color:var(--accent);font-size:9px">★ 50-state tool</span>'
+      : LAUNCHED.has(r.cc) ? ' <span style="color:#10b981;font-size:9px" title="Public configurator launched">● live</span>'
+      : ' <span style="color:#a78bfa;font-size:9px" title="Priced in API, public page not launched">○ priced</span>';
     return `<tr>
       <td><div class="state-cell"><span class="color-dot" style="background:${col}"></span>${r.n}${warn}${flag}</div></td>
       <td class="num">${cmpMoney(r.hw, r.ccy)}</td>
