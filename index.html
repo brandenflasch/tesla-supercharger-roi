@@ -25,7 +25,7 @@
   --text-muted: #4a5168;
   --accent: #60a5fa;
   --accent-dim: rgba(96,165,250,0.12);
-  --map-stroke: rgba(214,221,233,0.55);
+  --map-stroke: rgba(226,233,245,0.78);
 }
 /* Light palette — applied automatically (OS preference) AND via explicit data-theme="light" */
 @media (prefers-color-scheme: light) {
@@ -34,7 +34,7 @@
     --border: rgba(0,0,0,0.07); --border-bright: rgba(0,0,0,0.14);
     --text: #111827; --text-dim: #6b7280; --text-muted: #9ca3af;
     --accent: #2563eb; --accent-dim: rgba(37,99,235,0.08);
-    --map-stroke: rgba(60,72,94,0.4);
+    --map-stroke: rgba(40,52,76,0.6);
   }
 }
 :root[data-theme="light"] {
@@ -42,14 +42,14 @@
   --border: rgba(0,0,0,0.07); --border-bright: rgba(0,0,0,0.14);
   --text: #111827; --text-dim: #6b7280; --text-muted: #9ca3af;
   --accent: #2563eb; --accent-dim: rgba(37,99,235,0.08);
-  --map-stroke: rgba(60,72,94,0.4);
+  --map-stroke: rgba(40,52,76,0.6);
 }
 :root[data-theme="dark"] {
   --bg: #0c0f14; --surface: #13161d; --surface2: #1a1e28; --surface3: #222733;
   --border: rgba(255,255,255,0.06); --border-bright: rgba(255,255,255,0.12);
   --text: #e8ecf4; --text-dim: #7a8194; --text-muted: #4a5168;
   --accent: #60a5fa; --accent-dim: rgba(96,165,250,0.12);
-  --map-stroke: rgba(214,221,233,0.55);
+  --map-stroke: rgba(226,233,245,0.78);
 }
 .theme-toggle { position: fixed; top: 14px; right: 14px; z-index: 50; width: 34px; height: 34px; border-radius: 8px; background: var(--surface); border: 1px solid var(--border-bright); color: var(--text); font-size: 15px; cursor: pointer; display: flex; align-items: center; justify-content: center; transition: border-color .15s, transform .15s; box-shadow: 0 2px 10px rgba(0,0,0,0.15); }
 .theme-toggle:hover { border-color: var(--accent); transform: scale(1.08); }
@@ -1142,7 +1142,7 @@ let mapDisplay = 'USD';   // map tooltip currency: 'USD' | 'EUR' | 'NATIVE'
 // 'us' is no longer a world-map zoom — it switches to the 50-state ROI view.
 const MAP_BBOX = { emea: [-25, 60, 13, 73] };
 // Thinner strokes when zoomed (countries are larger, so borders stay crisp not chunky).
-const MAP_CW = { world: 0.65, us: 0.4, emea: 0.35 };
+const MAP_CW = { world: 0.65, us: 0.45, emea: 0.8 };
 // A 5×5 MultiPoint grid over the bbox. Fitting to points (not a polygon) avoids
 // d3's spherical winding ambiguity, which read a bbox polygon as the whole-globe complement.
 function bboxPoly(w, e, s, n) {
