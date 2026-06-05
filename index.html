@@ -220,6 +220,14 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .zbtn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
 .map-ccy { margin-left: auto; background: var(--surface2); color: var(--text); border: 1px solid var(--border-bright); border-radius: 6px; padding: 5px 8px; font-family: var(--font-body); font-size: 11px; cursor: pointer; }
 .map-ccy:focus { outline: 1px solid var(--accent); }
+/* Grouped button controls (Color By / Install / Currency) */
+.ctlrow { display: flex; flex-wrap: wrap; gap: 14px 26px; align-items: center; margin-bottom: 16px; }
+.ctlgrp { display: flex; align-items: center; gap: 9px; flex-wrap: wrap; }
+.ctlgrp > label { font-family: var(--font-mono); font-size: 9px; font-weight: 600; text-transform: uppercase; letter-spacing: 1px; color: var(--text-dim); }
+.seg { display: inline-flex; gap: 5px; flex-wrap: wrap; }
+.segbtn { background: var(--surface2); color: var(--text-dim); border: 1px solid var(--border-bright); border-radius: 6px; padding: 4px 11px; font-family: var(--font-body); font-size: 11px; font-weight: 500; cursor: pointer; transition: color .12s, border-color .12s, background .12s; }
+.segbtn:hover { color: var(--text); border-color: var(--accent); }
+.segbtn.active { background: var(--accent-dim); color: var(--accent); border-color: var(--accent); }
 
 /* Disclaimer */
 .disc { margin-top: 20px; padding: 14px; background: var(--surface); border: 1px solid var(--border); border-radius: 10px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
@@ -260,20 +268,35 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
       <button data-view="us" class="zbtn">🇺🇸 United States</button>
-      <select id="mapDisplay" class="map-ccy" title="Tooltip currency"><option value="USD" selected>$ USD</option><option value="EUR">€ EUR</option><option value="NATIVE">Native</option></select>
     </div>
   </div>
 
   <div id="viewAvail">
+      <div class="ctlrow">
+        <div class="ctlgrp"><label>Color By</label><div class="seg" id="segMetric">
+          <button class="segbtn active" data-v="tier">Availability</button>
+          <button class="segbtn" data-v="payback">Payback</button>
+          <button class="segbtn" data-v="profit">Profit</button>
+          <button class="segbtn" data-v="energy">Energy</button>
+          <button class="segbtn" data-v="sell">Sell</button>
+          <button class="segbtn" data-v="util">Utilization</button>
+        </div></div>
+        <div class="ctlgrp"><label>Install</label><div class="seg" id="segInstall">
+          <button class="segbtn" data-v="iL">Low</button>
+          <button class="segbtn active" data-v="iM">Medium</button>
+          <button class="segbtn" data-v="iH">High</button>
+        </div></div>
+        <div class="ctlgrp"><label>Currency</label><div class="seg" id="segCcy">
+          <button class="segbtn active" data-v="USD">$ USD</button>
+          <button class="segbtn" data-v="EUR">€ EUR</button>
+          <button class="segbtn" data-v="NATIVE">Native</button>
+        </div></div>
+      </div>
       <div class="kpi-bar">
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
-      </div>
-      <div class="controls" style="margin-bottom:16px">
-        <div class="cg"><label>Color By</label><select id="mapMetricSel"><option value="tier" selected>Availability</option><option value="payback">Payback Period</option><option value="profit">Profit / Stall / Yr</option><option value="energy">Energy Cost</option><option value="sell">Sell Price</option><option value="util">Utilization</option></select></div>
-        <div class="cg"><label>Install Tier</label><select id="mapInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
       </div>
       <div class="avail-main">
         <div class="map-box"><div id="worldMap"></div></div>
@@ -1192,8 +1215,6 @@ function setMapView(v) {
 }
 function initMapZoom() {
   document.querySelectorAll('.zbtn').forEach(b => b.addEventListener('click', () => setMapView(b.dataset.view)));
-  const ms = document.getElementById('mapDisplay');
-  if (ms) ms.addEventListener('change', e => { mapDisplay = e.target.value; });  // next hover uses the new currency
 }
 
 function drawWorldMap() {
@@ -1384,16 +1405,25 @@ function renderAvailLegend() {
 // Install tier is shared between the availability map and the comparison table.
 function setInstallTier(tier) {
   cmpInstall = tier;
-  const a = document.getElementById('mapInstallSel'), b = document.getElementById('cmpInstallSel');
-  if (a) a.value = tier; if (b) b.value = tier;
+  const b = document.getElementById('cmpInstallSel'); if (b) b.value = tier;
+  document.querySelectorAll('#segInstall .segbtn').forEach(x => x.classList.toggle('active', x.dataset.v === tier));
   renderCompare();                              // KPIs, market list, comparison table + chart
   if (mapMetric !== 'tier') drawWorldMap();     // recolor the map if it's showing a metric
 }
+// Generic segmented-button group: highlights the clicked button, fires onSelect(value).
+function initSeg(id, onSelect) {
+  const g = document.getElementById(id);
+  if (!g) return;
+  g.addEventListener('click', e => {
+    const b = e.target.closest('.segbtn'); if (!b) return;
+    g.querySelectorAll('.segbtn').forEach(x => x.classList.toggle('active', x === b));
+    onSelect(b.dataset.v);
+  });
+}
 function initAvailControls() {
-  const m = document.getElementById('mapMetricSel');
-  if (m) m.addEventListener('change', e => { mapMetric = e.target.value; drawWorldMap(); renderAvailLegend(); renderMarketList(); });
-  const ins = document.getElementById('mapInstallSel');
-  if (ins) ins.addEventListener('change', e => setInstallTier(e.target.value));
+  initSeg('segMetric', v => { mapMetric = v; drawWorldMap(); renderAvailLegend(); renderMarketList(); });
+  initSeg('segInstall', v => setInstallTier(v));
+  initSeg('segCcy', v => { mapDisplay = v; });   // map tooltip currency; next hover uses it
 }
 
 function cmpRows() {
