@@ -319,7 +319,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     <div class="cmp-controls">
       <div class="cg"><label>Display</label><select id="cmpDisplay"><option value="USD" selected>USD (normalized)</option><option value="NATIVE">Native currency</option></select></div>
       <div class="cg"><label>Install Tier</label><select id="cmpInstallSel"><option value="iL">Low</option><option value="iM" selected>Medium</option><option value="iH">High</option></select></div>
-      <div class="cg"><label>Chart Metric</label><select id="cmpMetricSel"><option value="payback" selected>Payback (yrs)</option><option value="capexUsd">CapEx / stall</option><option value="profitUsd">Profit / stall / yr</option><option value="hwUsd">Hardware / stall</option></select></div>
+      <div class="cg"><label>Chart Metric</label><select id="cmpMetricSel"><option value="payback" selected>Payback (yrs)</option><option value="capexUsd">CapEx / stall</option><option value="profitUsd">Profit / stall / yr</option><option value="hwUsd">Hardware / stall</option><option value="eUsd">Energy cost /kWh (buy)</option><option value="pUsd">Sell price /kWh (sell)</option><option value="u">Utilization</option></select></div>
     </div>
     <div class="cmp-chart-box"><canvas id="cmpChart"></canvas></div>
     <div class="table-scroll" style="margin-top:18px">
@@ -1192,7 +1192,8 @@ function cmpRows() {
       e: d.e, p: d.p, u: d.u, fee: d.fee, hw: d.hw, install: c.install, capex: c.capex,
       profit: c.profit, payback: c.payback,
       // USD-normalized values for charting/sorting consistency
-      hwUsd: toUSD(d.hw, d.ccy), capexUsd: toUSD(c.capex, d.ccy), profitUsd: toUSD(c.profit, d.ccy)
+      hwUsd: toUSD(d.hw, d.ccy), capexUsd: toUSD(c.capex, d.ccy), profitUsd: toUSD(c.profit, d.ccy),
+      eUsd: toUSD(d.e, d.ccy), pUsd: toUSD(d.p, d.ccy)
     };
   });
 }
@@ -1235,8 +1236,13 @@ function renderCompare() {
   // Chart — always sorted by the chosen metric for readability
   const metricVal = r => cmpMetric === 'payback' ? Math.min(r.payback, 60)
     : cmpMetric === 'capexUsd' ? r.capexUsd
-    : cmpMetric === 'profitUsd' ? r.profitUsd : r.hwUsd;
-  const asc = cmpMetric === 'payback' || cmpMetric === 'capexUsd' || cmpMetric === 'hwUsd';
+    : cmpMetric === 'profitUsd' ? r.profitUsd
+    : cmpMetric === 'hwUsd' ? r.hwUsd
+    : cmpMetric === 'eUsd' ? r.eUsd
+    : cmpMetric === 'pUsd' ? r.pUsd : r.u;
+  // lower-is-better metrics sort ascending (best on top); higher-is-better sort descending
+  const asc = ['payback', 'capexUsd', 'hwUsd', 'eUsd'].includes(cmpMetric);
+  const perKwh = cmpMetric === 'eUsd' || cmpMetric === 'pUsd';
   const chartRows = [...rows].sort((a, b) => asc ? metricVal(a) - metricVal(b) : metricVal(b) - metricVal(a));
   const labels = chartRows.map(r => r.n + (r.anomaly ? ' ⚠' : ''));
   const data = chartRows.map(metricVal);
@@ -1244,7 +1250,7 @@ function renderCompare() {
   const isDark = window.matchMedia('(prefers-color-scheme: dark)').matches;
   const textColor = isDark ? '#8b949e' : '#6b7280';
   const gridColor = isDark ? 'rgba(255,255,255,0.06)' : 'rgba(0,0,0,0.06)';
-  const metricLabel = { payback: 'Payback (years)', capexUsd: 'CapEx / stall (USD)', profitUsd: 'Profit / stall / yr (USD)', hwUsd: 'Hardware / stall (USD)' }[cmpMetric];
+  const metricLabel = { payback: 'Payback (years)', capexUsd: 'CapEx / stall (USD)', profitUsd: 'Profit / stall / yr (USD)', hwUsd: 'Hardware / stall (USD)', eUsd: 'Energy cost — purchase (USD / kWh)', pUsd: 'Sell price — to driver (USD / kWh)', u: 'Utilization (kWh / stall / day)' }[cmpMetric];
 
   if (cmpChart) cmpChart.destroy();
   cmpChart = new Chart(document.getElementById('cmpChart'), {
@@ -1257,11 +1263,13 @@ function renderCompare() {
         tooltip: { callbacks: { label: ctx => {
           const r = chartRows[ctx.dataIndex];
           if (cmpMetric === 'payback') return (r.payback > 100 ? '100+' : r.payback.toFixed(1)) + ' yr payback';
+          if (cmpMetric === 'u') return r.u.toFixed(0) + ' kWh/stall/day';
+          if (perKwh) return '$' + ctx.parsed.x.toFixed(3) + '/kWh';
           return '$' + Math.round(ctx.parsed.x).toLocaleString();
         } } }
       },
       scales: {
-        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => cmpMetric === 'payback' ? v + 'y' : (v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v) }, grid: { color: gridColor }, title: { display: true, text: metricLabel, color: textColor, font: { size: 11 } } },
+        x: { ticks: { color: textColor, font: { family: "'IBM Plex Mono', monospace", size: 10 }, callback: v => cmpMetric === 'payback' ? v + 'y' : cmpMetric === 'u' ? v : perKwh ? '$' + v.toFixed(2) : (v >= 1000 ? '$' + (v/1000).toFixed(0) + 'K' : '$' + v) }, grid: { color: gridColor }, title: { display: true, text: metricLabel, color: textColor, font: { size: 11 } } },
         y: { ticks: { color: textColor, font: { size: 9 }, autoSkip: false }, grid: { display: false } }
       }
     }
@@ -1330,6 +1338,18 @@ async function loadFX() {
   drawWorldMap();    // refresh tooltips with live FX
   renderCompare();   // refresh USD-normalized comparison with live FX
 }
+
+// For the international comparison, represent the US by its 50-state + DC AVERAGE
+// (not California). Derived from the same SD table the US tool uses, so it reflects
+// the default Maine correction. Hardware/install/fee are national constants already.
+(function setUSAverage() {
+  const states = Object.values(SD);
+  const avg = k => states.reduce((s, x) => s + x[k], 0) / states.length;
+  INTL.US.e = +avg('e').toFixed(3);
+  INTL.US.p = +avg('p').toFixed(3);
+  INTL.US.u = +avg('u').toFixed(1);
+  INTL.US.n = 'United States (avg)';
+})();
 
 // ===== INIT =====
 initChartSelect();
