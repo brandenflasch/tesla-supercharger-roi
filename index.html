@@ -278,7 +278,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <div class="avail-main">
         <div class="map-box"><div id="worldMap"></div></div>
         <aside class="sidebar">
-          <div class="rpanel"><h3><span class="dot" style="background:#10b981"></span> Markets by Payback</h3><ol class="rlist" id="mktList"></ol></div>
+          <div class="rpanel"><h3><span class="dot" style="background:#10b981"></span> <span id="mktListTitle">Markets by Payback</span></h3><ol class="rlist" id="mktList"></ol></div>
         </aside>
       </div>
       <div class="legend" id="availLegend" style="margin-top:12px"></div>
@@ -794,10 +794,11 @@ function kpis() {
   const worst = all.reduce((a, b) => a.payback > b.payback ? a : b);
   const prof = all.filter(s => s.payback < 5).length;
 
-  document.getElementById('kpi-med').textContent = (med > 100 ? '100+' : med.toFixed(1)) + ' yr';
-  document.getElementById('kpi-best').textContent = best.c + ' (' + best.payback.toFixed(1) + ' yr)';
-  document.getElementById('kpi-worst').textContent = worst.c + ' (' + (worst.payback > 100 ? '100+' : worst.payback.toFixed(0)) + ' yr)';
-  document.getElementById('kpi-prof').textContent = prof + ' / 51';
+  const setK = (id, val, label) => { const el = document.getElementById(id); el.textContent = val; if (label != null) el.nextElementSibling.textContent = label; };
+  setK('kpi-med', (med > 100 ? '100+' : med.toFixed(1)) + ' yr');
+  setK('kpi-best', best.payback.toFixed(1) + ' yr', 'Best · ' + best.c);
+  setK('kpi-worst', (worst.payback > 100 ? '100+' : worst.payback.toFixed(0)) + ' yr', 'Worst · ' + worst.c);
+  setK('kpi-prof', prof + ' / 51');
 }
 
 // ===== LEGEND =====
@@ -1331,15 +1332,35 @@ function cmpPayColor(pb) {
   if (pb < 30) return colors.poor; return colors.terrible;
 }
 
-// Color a priced market (INTL entry) by the active availability-map metric.
-// Energy/sell are USD-normalized so they're comparable across currencies.
-function globalMetricColor(d) {
+// Metric metadata: display label, sort direction (asc = lower is better), value formatter.
+const METRIC_META = {
+  payback: { label: 'Payback',     asc: true,  fmt: v => (v > 100 ? '100+' : v.toFixed(1)) + ' yr' },
+  profit:  { label: 'Profit/Stall', asc: false, fmt: v => '$' + (v / 1000).toFixed(0) + 'K' },
+  energy:  { label: 'Energy Cost', asc: true,  fmt: v => '$' + v.toFixed(3) },
+  sell:    { label: 'Sell Price',  asc: false, fmt: v => '$' + v.toFixed(3) },
+  util:    { label: 'Utilization', asc: false, fmt: v => v.toFixed(0) + ' kWh/d' }
+};
+// Shared color scale (USD/native-agnostic value in). Used by both the map and the list.
+function scaleColor(metric, v) {
   const c = colors;
-  if (mapMetric === 'payback') return cmpPayColor(intlCalc(d).payback);
-  if (mapMetric === 'profit') { const v = toUSD(intlCalc(d).profit, d.ccy); return v > 60000 ? c.excellent : v > 40000 ? c.good : v > 25000 ? c.moderate : v > 15000 ? c.marginal : v > 0 ? c.poor : c.terrible; }
-  if (mapMetric === 'energy') { const v = toUSD(d.e, d.ccy); return v < 0.10 ? c.excellent : v < 0.14 ? c.good : v < 0.18 ? c.moderate : v < 0.22 ? c.marginal : v < 0.28 ? c.poor : c.terrible; }
-  if (mapMetric === 'sell') { const v = toUSD(d.p, d.ccy); return v > 0.70 ? c.excellent : v > 0.60 ? c.good : v > 0.55 ? c.moderate : v > 0.50 ? c.marginal : v > 0.45 ? c.poor : c.terrible; }
-  const u = d.u; return u > 350 ? c.excellent : u > 250 ? c.good : u > 180 ? c.moderate : u > 120 ? c.marginal : u > 80 ? c.poor : c.terrible; // util
+  if (metric === 'payback') return cmpPayColor(v);
+  if (metric === 'profit') return v > 60000 ? c.excellent : v > 40000 ? c.good : v > 25000 ? c.moderate : v > 15000 ? c.marginal : v > 0 ? c.poor : c.terrible;
+  if (metric === 'energy') return v < 0.10 ? c.excellent : v < 0.14 ? c.good : v < 0.18 ? c.moderate : v < 0.22 ? c.marginal : v < 0.28 ? c.poor : c.terrible;
+  if (metric === 'sell') return v > 0.70 ? c.excellent : v > 0.60 ? c.good : v > 0.55 ? c.moderate : v > 0.50 ? c.marginal : v > 0.45 ? c.poor : c.terrible;
+  return v > 350 ? c.excellent : v > 250 ? c.good : v > 180 ? c.moderate : v > 120 ? c.marginal : v > 80 ? c.poor : c.terrible; // util
+}
+// Metric value for a comparison row (energy/sell USD-normalized for cross-currency comparison).
+function metricValueOf(r, metric) {
+  return metric === 'payback' ? r.payback : metric === 'profit' ? toUSD(r.profit, r.ccy)
+    : metric === 'energy' ? toUSD(r.e, r.ccy) : metric === 'sell' ? toUSD(r.p, r.ccy) : r.u;
+}
+// Map fill: color a priced market by the active map metric.
+function globalMetricColor(d) {
+  const v = mapMetric === 'payback' ? intlCalc(d).payback
+    : mapMetric === 'profit' ? toUSD(intlCalc(d).profit, d.ccy)
+    : mapMetric === 'energy' ? toUSD(d.e, d.ccy)
+    : mapMetric === 'sell' ? toUSD(d.p, d.ccy) : d.u;
+  return scaleColor(mapMetric, v);
 }
 function availLegendItems() {
   const c = colors;
@@ -1370,7 +1391,7 @@ function setInstallTier(tier) {
 }
 function initAvailControls() {
   const m = document.getElementById('mapMetricSel');
-  if (m) m.addEventListener('change', e => { mapMetric = e.target.value; drawWorldMap(); renderAvailLegend(); });
+  if (m) m.addEventListener('change', e => { mapMetric = e.target.value; drawWorldMap(); renderAvailLegend(); renderMarketList(); });
   const ins = document.getElementById('mapInstallSel');
   if (ins) ins.addEventListener('change', e => setInstallTier(e.target.value));
 }
@@ -1427,15 +1448,19 @@ function highlightCountry(cc, on) {
 function renderMarketList() {
   const el = document.getElementById('mktList');
   if (!el) return;
-  const rows = cmpRows().sort((a, b) => a.payback - b.payback);
+  const metric = mapMetric === 'tier' ? 'payback' : mapMetric;   // tier mode defaults to payback ranking
+  const meta = METRIC_META[metric];
+  const rows = cmpRows().sort((a, b) => { const va = metricValueOf(a, metric), vb = metricValueOf(b, metric); return meta.asc ? va - vb : vb - va; });
+  const titleEl = document.getElementById('mktListTitle');
+  if (titleEl) titleEl.textContent = 'Markets by ' + meta.label;
   el.innerHTML = rows.map((r, i) => {
-    const col = cmpPayColor(r.payback);
-    const pb = r.payback > 100 ? '100+' : r.payback.toFixed(1);
+    const v = metricValueOf(r, metric);
+    const col = scaleColor(metric, v);
     const launched = r.us || LAUNCHED.has(r.cc);
     const dot = r.us ? '★' : (launched ? '●' : '○');
     const dotCol = r.us ? 'var(--accent)' : (launched ? '#10b981' : '#a78bfa');
     const tip = launched ? 'publicly live' : 'priced only (no public page)';
-    return `<li data-cc="${r.cc}"><span class="rn">${i + 1}</span><span class="rs" style="width:auto;color:${dotCol}" title="${tip}">${dot}</span><span style="flex:1;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</span><span class="rv" style="color:${col}">${pb} yr</span></li>`;
+    return `<li data-cc="${r.cc}"><span class="rn">${i + 1}</span><span class="rs" style="width:auto;color:${dotCol}" title="${tip}">${dot}</span><span style="flex:1;font-size:11px;font-weight:600;white-space:nowrap;overflow:hidden;text-overflow:ellipsis">${r.n}</span><span class="rv" style="color:${col}">${meta.fmt(v)}</span></li>`;
   }).join('');
   el.querySelectorAll('li').forEach(li => {
     const cc = li.dataset.cc;
