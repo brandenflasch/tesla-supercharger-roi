@@ -1740,5 +1740,17 @@ loadMap().then(() => {
   renderTable();
 });
 </script>
+<script>
+  // Self-hosted, cookie-free pageview beacon (ev-analytics on the VPS).
+  // Fires on the two live hosts only; absolute URL because the GitHub Pages
+  // copy has no /_a/ proxy of its own.
+  (function () {
+    var h = location.hostname;
+    if (h !== 'tools.bflasch.com' && h !== 'brandenflasch.github.io') return;
+    new Image().src = 'https://tools.bflasch.com/_a/t?d=' + h
+      + '&p=' + encodeURIComponent(location.pathname)
+      + '&r=' + encodeURIComponent(document.referrer);
+  })();
+</script>
 </body>
 </html>
