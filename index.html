@@ -247,7 +247,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
     <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 31 priced · 11 publicly live</div>
-    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;4,&nbsp;2026</span></div>
+    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;13,&nbsp;2026</span></div>
     <div class="socials">
       <a href="https://bflasch.com" target="_blank" rel="noopener" title="bflasch.com"><svg width="18" height="18" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="2" stroke-linecap="round" stroke-linejoin="round"><circle cx="12" cy="12" r="10"/><line x1="2" y1="12" x2="22" y2="12"/><path d="M12 2a15.3 15.3 0 0 1 4 10 15.3 15.3 0 0 1-4 10 15.3 15.3 0 0 1-4-10 15.3 15.3 0 0 1 4-10z"/></svg></a>
       <a href="https://youtube.com/@brandenflasch" target="_blank" rel="noopener" title="YouTube"><svg width="18" height="18" viewBox="0 0 24 24" fill="currentColor"><path d="M23.498 6.186a3.016 3.016 0 0 0-2.122-2.136C19.505 3.545 12 3.545 12 3.545s-7.505 0-9.377.505A3.017 3.017 0 0 0 .502 6.186C0 8.07 0 12 0 12s0 3.93.502 5.814a3.016 3.016 0 0 0 2.122 2.136c1.871.505 9.376.505 9.376.505s7.505 0 9.377-.505a3.015 3.015 0 0 0 2.122-2.136C24 15.93 24 12 24 12s0-3.93-.502-5.814zM9.545 15.568V8.432L15.818 12l-6.273 3.568z"/></svg></a>
@@ -263,7 +263,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <h2 id="mapTitle">Where Supercharger for Business Is Live</h2>
       <span class="avail-count" id="availCount">31 markets</span>
     </div>
-    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 4). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).</div>
+    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 13). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).</div>
     <div class="map-zoom">
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
@@ -436,16 +436,13 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
         <tbody id="cmpBody"></tbody>
       </table>
     </div>
-    <div class="cmp-note"><strong>Payback is an idealized year-1 figure</strong> at Tesla's assumed average utilization — no ramp-up, downtime, demand charges or rent — so real-world is longer everywhere; use it to rank markets, not as a guarantee. <span id="cmpFx"></span> Energy/sell/fee are per-kWh. &#9888; Norway's hardware was &times;10-corrected (Tesla's API returned a value ~10&times; below the global baseline &mdash; a likely dropped trailing zero), so its payback reflects an estimate, not Tesla's raw figure.</div>
+    <div class="cmp-note"><strong>Payback is an idealized year-1 figure</strong> at Tesla's assumed average utilization — no ramp-up, downtime, demand charges or rent — so real-world is longer everywhere; use it to rank markets, not as a guarantee. <span id="cmpFx"></span> Energy/sell/fee are per-kWh.</div>
   </div>
 
   <div class="disc anim" style="--i:14">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
-    <strong>Maine ($0.008/kWh)</strong> is flagged as a likely data anomaly&mdash;actual commercial rates are ~$0.15-0.18/kWh.
-    <span id="maineFixed" style="color:#10b981;margin-left:4px;">&#10003; Maine corrected to $0.15/kWh <a href="#" id="revertMaine" style="color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Use raw $0.008</a></span>
-    <a href="#" id="fixMaine" style="display:none;color:var(--accent);text-decoration:underline;cursor:pointer;margin-left:4px;">Restore $0.15/kWh for Maine</a>
-    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of June&nbsp;4,&nbsp;2026.</strong> International FX via open.er-api.com (live).
+    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of June&nbsp;13,&nbsp;2026.</strong> International FX via open.er-api.com (live). <em>Note: between the June 4 and June 13 pulls, Tesla corrected its earlier Maine ($0.008/kWh) and Norway (~10×-low hardware) data errors, and revised driver prices down in ~18 not-yet-launched markets.</em>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -472,7 +469,7 @@ const SD = {
   "20":{c:"KS",n:"Kansas",e:0.174,p:0.45,u:185.6},
   "21":{c:"KY",n:"Kentucky",e:0.200,p:0.54,u:252.4},
   "22":{c:"LA",n:"Louisiana",e:0.148,p:0.56,u:228.7},
-  "23":{c:"ME",n:"Maine",e:0.15,p:0.61,u:82.0,a:false},
+  "23":{c:"ME",n:"Maine",e:0.293,p:0.61,u:82.0},
   "24":{c:"MD",n:"Maryland",e:0.134,p:0.55,u:376.3},
   "25":{c:"MA",n:"Massachusetts",e:0.141,p:0.59,u:262.4},
   "26":{c:"MI",n:"Michigan",e:0.167,p:0.49,u:218.4},
@@ -1097,25 +1094,6 @@ document.getElementById('customPosts').addEventListener('input', e => {
 });
 
 
-// ===== MAINE FIX =====
-const MAINE_ORIGINAL = 0.008;
-document.getElementById('fixMaine').addEventListener('click', e => {
-  e.preventDefault();
-  SD["23"].e = 0.15;
-  SD["23"].a = false;
-  document.getElementById('fixMaine').style.display = 'none';
-  document.getElementById('maineFixed').style.display = 'inline';
-  renderAll();
-});
-document.getElementById('revertMaine').addEventListener('click', e => {
-  e.preventDefault();
-  SD["23"].e = MAINE_ORIGINAL;
-  SD["23"].a = true;
-  document.getElementById('fixMaine').style.display = 'inline';
-  document.getElementById('maineFixed').style.display = 'none';
-  renderAll();
-});
-
 // ===== INTERNATIONAL DATA (Supercharger for Business) =====
 // Real per-country pricing pulled from Tesla's /api/energy/supercharger/pricing
 // endpoint on 2026-06-04. Pricing is NATIONAL outside the US (every region in a
@@ -1127,31 +1105,31 @@ const INTL = {
   FR: { n:'France',               iso:250, ccy:'EUR', e:0.097, p:0.52,   u:259.1, fee:0.087, hw:37500,    iL:35260,    iM:43000,    iH:50740 },
   ES: { n:'Spain',                iso:724, ccy:'EUR', e:0.147, p:0.47,   u:207.1, fee:0.087, hw:37500,    iL:36695,    iM:44750,    iH:52805 },
   IT: { n:'Italy',                iso:380, ccy:'EUR', e:0.216, p:0.71,   u:203.8, fee:0.087, hw:37500,    iL:40590,    iM:49500,    iH:58410 },
-  AE: { n:'United Arab Emirates', iso:784, ccy:'AED', e:0.44,  p:2.57,   u:400.8, fee:0.37,  hw:160000,   iL:133250,   iM:162500,   iH:191750 },
+  AE: { n:'United Arab Emirates', iso:784, ccy:'AED', e:0.44,  p:1.22,   u:400.8, fee:0.37,  hw:160000,   iL:133250,   iM:162500,   iH:191750 },
   GB: { n:'United Kingdom',       iso:826, ccy:'GBP', e:0.17,  p:0.71,   u:337.1, fee:0.076, hw:32500,    iL:44690,    iM:54500,    iH:64310 },
   NL: { n:'Netherlands',          iso:528, ccy:'EUR', e:0.197, p:0.69,   u:313.9, fee:0.087, hw:37500,    iL:17220,    iM:21000,    iH:24780 },
   BE: { n:'Belgium',              iso:56,  ccy:'EUR', e:0.134, p:0.69,   u:397.0, fee:0.087, hw:37500,    iL:28290,    iM:34500,    iH:40710 },
   AT: { n:'Austria',              iso:40,  ccy:'EUR', e:0.181, p:0.59,   u:220.0, fee:0.087, hw:37500,    iL:56785,    iM:69250,    iH:81715 },
-  CH: { n:'Switzerland',          iso:756, ccy:'CHF', e:0.20,  p:0.77,   u:259.3, fee:0.079, hw:34200,    iL:61090,    iM:74500,    iH:87910 },
-  NO: { n:'Norway',               iso:578, ccy:'NOK', e:1.01,  p:5.48,   u:169.5, fee:1.02,  hw:446500,   iL:265680,   iM:324000,   iH:382320, anomaly:'Hardware ×10-corrected: Tesla\'s API returned 44,650 NOK (~10× below the global ~€34k baseline) — assumed a dropped trailing zero and corrected to 446,500 NOK. Energy/sell/fee/install were unaffected.' },
+  CH: { n:'Switzerland',          iso:756, ccy:'CHF', e:0.20,  p:0.60,   u:259.3, fee:0.079, hw:34200,    iL:61090,    iM:74500,    iH:87910 },
+  NO: { n:'Norway',               iso:578, ccy:'NOK', e:1.01,  p:5.48,   u:169.5, fee:1.02,  hw:406370,   iL:265680,   iM:324000,   iH:382320 },
   SE: { n:'Sweden',               iso:752, ccy:'SEK', e:1.40,  p:5.79,   u:213.9, fee:0.94,  hw:406990,   iL:257480,   iM:314000,   iH:370520 },
-  DK: { n:'Denmark',              iso:208, ccy:'DKK', e:0.84,  p:4.95,   u:228.6, fee:0.65,  hw:280000,   iL:328000,   iM:400000,   iH:472000 },
-  FI: { n:'Finland',              iso:246, ccy:'EUR', e:0.133, p:0.70,   u:127.8, fee:0.087, hw:37500,    iL:24190,    iM:29500,    iH:34810 },
-  PL: { n:'Poland',               iso:616, ccy:'PLN', e:0.45,  p:3.14,   u:413.2, fee:0.37,  hw:159000,   iL:140630,   iM:171500,   iH:202370 },
-  PT: { n:'Portugal',             iso:620, ccy:'EUR', e:0.099, p:0.66,   u:451.0, fee:0.087, hw:37500,    iL:39360,    iM:48000,    iH:56640 },
-  IE: { n:'Ireland',              iso:372, ccy:'EUR', e:0.254, p:0.72,   u:237.9, fee:0.087, hw:37500,    iL:51660,    iM:63000,    iH:74340 },
+  DK: { n:'Denmark',              iso:208, ccy:'DKK', e:0.84,  p:3.66,   u:228.6, fee:0.65,  hw:280000,   iL:328000,   iM:400000,   iH:472000 },
+  FI: { n:'Finland',              iso:246, ccy:'EUR', e:0.133, p:0.38,   u:127.8, fee:0.087, hw:37500,    iL:24190,    iM:29500,    iH:34810 },
+  PL: { n:'Poland',               iso:616, ccy:'PLN', e:0.45,  p:2.47,   u:413.2, fee:0.37,  hw:159000,   iL:140630,   iM:171500,   iH:202370 },
+  PT: { n:'Portugal',             iso:620, ccy:'EUR', e:0.099, p:0.65,   u:451.0, fee:0.087, hw:37500,    iL:39360,    iM:48000,    iH:56640 },
+  IE: { n:'Ireland',              iso:372, ccy:'EUR', e:0.254, p:0.68,   u:237.9, fee:0.087, hw:37500,    iL:51660,    iM:63000,    iH:74340 },
   CZ: { n:'Czechia',              iso:203, ccy:'CZK', e:4.40,  p:13.15,  u:401.1, fee:2.11,  hw:910000,   iL:902000,   iM:1100000,  iH:1298000 },
-  HU: { n:'Hungary',              iso:348, ccy:'HUF', e:52.99, p:288.47, u:386.7, fee:31.25, hw:13480000, iL:12136000, iM:14800000, iH:17464000 },
-  GR: { n:'Greece',               iso:300, ccy:'EUR', e:0.171, p:0.62,   u:189.6, fee:0.087, hw:37500,    iL:49200,    iM:60000,    iH:70800 },
-  RO: { n:'Romania',              iso:642, ccy:'RON', e:0.80,  p:3.64,   u:263.8, fee:0.46,  hw:196700,   iL:54940,    iM:67000,    iH:79060 },
-  HR: { n:'Croatia',              iso:191, ccy:'EUR', e:0.144, p:0.76,   u:184.1, fee:0.087, hw:37500,    iL:48380,    iM:59000,    iH:69620 },
-  SK: { n:'Slovakia',             iso:703, ccy:'EUR', e:0.286, p:0.70,   u:289.1, fee:0.087, hw:37500,    iL:34604,    iM:42200,    iH:49796 },
-  SI: { n:'Slovenia',             iso:705, ccy:'EUR', e:0.14,  p:0.78,   u:223.9, fee:0.087, hw:37500,    iL:29930,    iM:36500,    iH:43070 },
-  LU: { n:'Luxembourg',           iso:442, ccy:'EUR', e:0.138, p:0.64,   u:273.6, fee:0.087, hw:37500,    iL:53300,    iM:65000,    iH:76700 },
-  LV: { n:'Latvia',               iso:428, ccy:'EUR', e:0.048, p:0.74,   u:321.0, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
-  LT: { n:'Lithuania',            iso:440, ccy:'EUR', e:0.138, p:0.74,   u:385.9, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
-  IS: { n:'Iceland',              iso:352, ccy:'ISK', e:18.38, p:107.54, u:163.2, fee:12.48, hw:5377500,  iL:4305000,  iM:5250000,  iH:6195000 },
-  IL: { n:'Israel',               iso:376, ccy:'ILS', e:0.41,  p:2.16,   u:242.8, fee:0.33,  hw:140330,   iL:105370,   iM:128500,   iH:151630 },
+  HU: { n:'Hungary',              iso:348, ccy:'HUF', e:52.99, p:190.25, u:386.7, fee:31.25, hw:13480000, iL:12136000, iM:14800000, iH:17464000 },
+  GR: { n:'Greece',               iso:300, ccy:'EUR', e:0.171, p:0.51,   u:189.6, fee:0.087, hw:37500,    iL:49200,    iM:60000,    iH:70800 },
+  RO: { n:'Romania',              iso:642, ccy:'RON', e:0.80,  p:2.55,   u:263.8, fee:0.46,  hw:196700,   iL:54940,    iM:67000,    iH:79060 },
+  HR: { n:'Croatia',              iso:191, ccy:'EUR', e:0.144, p:0.55,   u:184.1, fee:0.087, hw:37500,    iL:48380,    iM:59000,    iH:69620 },
+  SK: { n:'Slovakia',             iso:703, ccy:'EUR', e:0.286, p:0.54,   u:289.1, fee:0.087, hw:37500,    iL:34604,    iM:42200,    iH:49796 },
+  SI: { n:'Slovenia',             iso:705, ccy:'EUR', e:0.14,  p:0.55,   u:223.9, fee:0.087, hw:37500,    iL:29930,    iM:36500,    iH:43070 },
+  LU: { n:'Luxembourg',           iso:442, ccy:'EUR', e:0.138, p:0.65,   u:273.6, fee:0.087, hw:37500,    iL:53300,    iM:65000,    iH:76700 },
+  LV: { n:'Latvia',               iso:428, ccy:'EUR', e:0.048, p:0.40,   u:321.0, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
+  LT: { n:'Lithuania',            iso:440, ccy:'EUR', e:0.138, p:0.40,   u:385.9, fee:0.087, hw:37500,    iL:28700,    iM:35000,    iH:41300 },
+  IS: { n:'Iceland',              iso:352, ccy:'ISK', e:18.38, p:66.06, u:163.2, fee:12.48, hw:5377500,  iL:4305000,  iM:5250000,  iH:6195000 },
+  IL: { n:'Israel',               iso:376, ccy:'ILS', e:0.41,  p:1.10,   u:242.8, fee:0.33,  hw:140330,   iL:105370,   iM:128500,   iH:151630 },
   TR: { n:'Turkey',               iso:792, ccy:'TRY', e:6.20,  p:13.00,  u:375.8, fee:4.34,  hw:1869400,  iL:779000,   iM:950000,   iH:1121000 }
 };
 // Program announced but pricing API returns HTTP 500 (not yet configured) as of harvest.
@@ -1204,7 +1182,7 @@ async function loadWorldMap() {
   worldData = await resp.json();
   drawWorldMap();
 }
-const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 4). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).`;
+const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 13). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).`;
 const US_SUB = `Per-state ROI across all 50 states + DC, from Tesla's US pricing. Hover any state for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
 
 // The three view buttons drive ONE map area: World/EMEA show the availability map
