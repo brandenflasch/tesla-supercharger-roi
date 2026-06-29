@@ -1,0 +1,823 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Tesla Supercharger Fee Calculator</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.7/dist/chart.umd.min.js"></script>
+<style>
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: #0f0f0f;
+    color: #e0e0e0;
+    min-height: 100vh;
+    padding: 24px;
+  }
+  h1 { text-align: center; font-size: 1.6rem; margin-bottom: 4px; color: #fff; }
+  .subtitle { text-align: center; color: #888; font-size: 0.9rem; margin-bottom: 24px; }
+  .container { max-width: 960px; margin: 0 auto; }
+  .panel {
+    background: #1a1a1a;
+    border: 1px solid #2a2a2a;
+    border-radius: 12px;
+    padding: 24px;
+    margin-bottom: 20px;
+  }
+  .panel-title {
+    font-size: 1.05rem;
+    font-weight: 600;
+    margin-bottom: 16px;
+    color: #c8c8c8;
+    border-bottom: 1px solid #2a2a2a;
+    padding-bottom: 8px;
+    display: flex;
+    align-items: center;
+    justify-content: space-between;
+  }
+  .grid {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 16px;
+  }
+  @media (max-width: 600px) {
+    .grid { grid-template-columns: 1fr; }
+    .results-row { flex-wrap: wrap; }
+    .result-card { min-width: 45%; }
+  }
+  .field label {
+    display: block;
+    font-size: 0.82rem;
+    color: #999;
+    margin-bottom: 4px;
+  }
+  .field input, .field select {
+    width: 100%;
+    padding: 8px 12px;
+    background: #111;
+    border: 1px solid #333;
+    border-radius: 6px;
+    color: #fff;
+    font-size: 0.95rem;
+    outline: none;
+    transition: border-color 0.2s;
+  }
+  .field input:focus, .field select:focus { border-color: #e31937; }
+  .field input:disabled { opacity: 0.4; cursor: not-allowed; }
+  .field .hint { font-size: 0.75rem; color: #666; margin-top: 2px; }
+  .inline-label { display: flex; align-items: center; gap: 8px; }
+
+  /* Toggle switch */
+  .toggle-switch {
+    position: relative;
+    display: inline-block;
+    width: 36px;
+    height: 20px;
+    flex-shrink: 0;
+    cursor: pointer;
+  }
+  .toggle-switch input { opacity: 0; width: 0; height: 0; }
+  .toggle-slider {
+    position: absolute;
+    inset: 0;
+    background: #333;
+    border-radius: 20px;
+    transition: background 0.2s;
+  }
+  .toggle-slider::before {
+    content: '';
+    position: absolute;
+    width: 14px; height: 14px;
+    left: 3px; bottom: 3px;
+    background: #888;
+    border-radius: 50%;
+    transition: all 0.2s;
+  }
+  .toggle-switch input:checked + .toggle-slider { background: #e31937; }
+  .toggle-switch input:checked + .toggle-slider::before {
+    transform: translateX(16px);
+    background: #fff;
+  }
+
+  /* Utilization scaling */
+  .scaling-toggle { display: flex; gap: 8px; margin-bottom: 12px; }
+  .scaling-toggle button {
+    padding: 6px 14px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #111;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.82rem;
+    transition: all 0.2s;
+  }
+  .scaling-toggle button.active {
+    background: #e31937;
+    border-color: #e31937;
+    color: #fff;
+  }
+  .fixed-pct { display: flex; align-items: center; gap: 8px; }
+  .fixed-pct input { width: 90px; }
+  .fixed-pct span { color: #888; font-size: 0.85rem; }
+  .year-table { width: 100%; border-collapse: collapse; }
+  .year-table th {
+    text-align: left; font-size: 0.78rem; color: #777;
+    padding: 4px 8px; border-bottom: 1px solid #2a2a2a;
+  }
+  .year-table td { padding: 4px 8px; }
+  .year-table td:first-child { color: #aaa; font-size: 0.85rem; width: 70px; }
+  .year-table input {
+    width: 80px; padding: 5px 8px;
+    background: #111; border: 1px solid #333; border-radius: 4px;
+    color: #fff; font-size: 0.85rem; text-align: right; outline: none;
+  }
+  .year-table input:focus { border-color: #e31937; }
+
+  /* Results */
+  .results-row { display: flex; gap: 12px; margin-bottom: 16px; }
+  .result-card {
+    flex: 1;
+    background: #111;
+    border: 1px solid #2a2a2a;
+    border-radius: 10px;
+    padding: 14px 10px;
+    text-align: center;
+    min-width: 0;
+  }
+  .result-card .label {
+    font-size: 0.72rem; color: #888; margin-bottom: 4px;
+    text-transform: uppercase; letter-spacing: 0.5px;
+  }
+  .result-card .value { font-size: 1.3rem; font-weight: 700; color: #e31937; }
+  .result-card .value.green { color: #4caf50; }
+  .result-card .value.amber { color: #ff9800; }
+  .result-card .value.blue { color: #64b4ff; }
+  .result-card .sub { font-size: 0.72rem; color: #666; margin-top: 2px; }
+  .chart-wrap { position: relative; height: 400px; }
+  .panel-body-disabled { opacity: 0.35; pointer-events: none; }
+
+  /* Investment breakdown */
+  .invest-grid {
+    display: grid;
+    grid-template-columns: 1fr auto;
+    gap: 4px 16px;
+    font-size: 0.85rem;
+    margin-bottom: 12px;
+  }
+  .invest-grid .ig-label { color: #999; }
+  .invest-grid .ig-val { color: #fff; text-align: right; font-variant-numeric: tabular-nums; }
+  .invest-grid .ig-total { border-top: 1px solid #333; padding-top: 4px; font-weight: 600; }
+  .invest-grid .ig-total-val { border-top: 1px solid #333; padding-top: 4px; font-weight: 600; color: #e31937; }
+
+  .labor-btns { display: flex; gap: 6px; margin-bottom: 12px; }
+  .labor-btns button {
+    flex: 1;
+    padding: 6px 10px;
+    border: 1px solid #333;
+    border-radius: 6px;
+    background: #111;
+    color: #999;
+    cursor: pointer;
+    font-size: 0.8rem;
+    transition: all 0.2s;
+  }
+  .labor-btns button.active {
+    background: #e31937;
+    border-color: #e31937;
+    color: #fff;
+  }
+</style>
+</head>
+<body>
+
+<div class="container">
+  <h1>Supercharger Fee Calculator</h1>
+  <p class="subtitle">Model Tesla's Supercharger for Business fees, revenue, and ROI over 15 years</p>
+
+  <!-- Site Parameters -->
+  <div class="panel">
+    <div class="panel-title">Site Parameters</div>
+    <div class="grid">
+      <div class="field">
+        <label>Number of Stalls</label>
+        <input type="number" id="stalls" value="8" min="1" max="500">
+      </div>
+      <div class="field">
+        <label>Sessions per Stall per Day</label>
+        <input type="number" id="sessions" value="6" min="0.1" max="100" step="0.1">
+        <div class="hint">Tesla avg varies by state (78–534 kWh/post/day)</div>
+      </div>
+      <div class="field">
+        <label>Average kWh per Session (grid draw)</label>
+        <input type="number" id="kwh" value="35" min="1" max="500" step="1">
+        <div class="hint">Tesla assumes ~35 kWh per session</div>
+      </div>
+      <div class="field">
+        <label class="inline-label">
+          <span>Energy Loss (%)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="lossOn" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </label>
+        <input type="number" id="energyLoss" value="13" min="0" max="50" step="0.5">
+        <div class="hint">Grid-to-battery loss — Tesla uses 13% (disclaims ~15%)</div>
+      </div>
+      <div class="field">
+        <label class="inline-label">
+          <span>Tesla Fee ($/kWh)</span>
+        </label>
+        <input type="number" id="fee" value="0.10" min="0.01" max="1.00" step="0.01">
+      </div>
+      <div class="field">
+        <label class="inline-label">
+          <span>Tesla Fee Escalation (%/yr)</span>
+          <label class="toggle-switch">
+            <input type="checkbox" id="escalationOn" checked>
+            <span class="toggle-slider"></span>
+          </label>
+        </label>
+        <input type="number" id="escalation" value="3" min="0" max="50" step="0.5">
+        <div class="hint">Tesla's model escalates $0.10 at 3%/yr</div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Revenue & Costs -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>Revenue & Costs</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="revenueOn" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="revenueBody">
+      <div class="grid">
+        <div class="field">
+          <label>Customer Price ($/kWh)</label>
+          <input type="number" id="custPrice" value="0.45" min="0.01" max="5.00" step="0.01">
+          <div class="hint">What you charge drivers (per delivered kWh)</div>
+        </div>
+        <div class="field">
+          <label class="inline-label">
+            <span>Customer Price Escalation (%/yr)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="custPriceEscOn">
+              <span class="toggle-slider"></span>
+            </label>
+          </label>
+          <input type="number" id="custPriceEsc" value="3" min="0" max="50" step="0.5" disabled>
+          <div class="hint">Tesla holds flat — toggle on to model increases</div>
+        </div>
+        <div class="field">
+          <label>Utility Cost ($/kWh)</label>
+          <input type="number" id="utilCost" value="0.12" min="0.00" max="2.00" step="0.01">
+          <div class="hint">Your electricity procurement cost</div>
+        </div>
+        <div class="field">
+          <label class="inline-label">
+            <span>Utility Cost Escalation (%/yr)</span>
+            <label class="toggle-switch">
+              <input type="checkbox" id="utilCostEscOn">
+              <span class="toggle-slider"></span>
+            </label>
+          </label>
+          <input type="number" id="utilCostEsc" value="3" min="0" max="50" step="0.5" disabled>
+          <div class="hint">Tesla holds flat — toggle on to model increases</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Initial Investment -->
+  <div class="panel">
+    <div class="panel-title">
+      <span>Initial Investment</span>
+      <label class="toggle-switch">
+        <input type="checkbox" id="investOn" checked>
+        <span class="toggle-slider"></span>
+      </label>
+    </div>
+    <div id="investBody">
+      <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">Per-post cost breakdown (Tesla defaults):</p>
+      <div class="labor-btns">
+        <button id="labor-low" onclick="setLabor(45000)">Low Labor ($45K)</button>
+        <button id="labor-med" class="active" onclick="setLabor(55000)">Med Labor ($55K)</button>
+        <button id="labor-high" onclick="setLabor(65000)">High Labor ($65K)</button>
+      </div>
+      <div class="invest-grid">
+        <span class="ig-label">Cabinet (per post)</span><span class="ig-val">$55,000</span>
+        <span class="ig-label">Other Hardware</span><span class="ig-val">$3,000</span>
+        <span class="ig-label">Services</span><span class="ig-val">$3,000</span>
+        <span class="ig-label">Shipping</span><span class="ig-val">$1,500</span>
+        <span class="ig-label">Installation Labor</span><span class="ig-val" id="laborDisp">$55,000</span>
+        <span class="ig-label ig-total">Total per Post</span><span class="ig-val ig-total-val" id="perPostCost">$117,500</span>
+      </div>
+      <div class="grid">
+        <div class="field">
+          <label>Per-Post Cost Override ($)</label>
+          <input type="number" id="postCost" value="117500" min="0" max="1000000" step="500">
+          <div class="hint">Edit directly if your costs differ</div>
+        </div>
+        <div class="field">
+          <label>Total Site Investment</label>
+          <div style="font-size:1.3rem; font-weight:700; color:#e31937; padding:8px 0;" id="totalInvest">$940,000</div>
+        </div>
+      </div>
+    </div>
+  </div>
+
+  <!-- Utilization Growth -->
+  <div class="panel">
+    <div class="panel-title">Utilization Growth</div>
+    <div class="scaling-toggle">
+      <button id="btn-fixed" class="active" onclick="setMode('fixed')">Fixed % per Year</button>
+      <button id="btn-custom" onclick="setMode('custom')">Custom per Year</button>
+    </div>
+    <div id="fixed-section">
+      <div class="fixed-pct">
+        <input type="number" id="fixedPct" value="7" min="-50" max="200" step="0.5">
+        <span>% growth in sessions/day each year (Tesla assumes 7%)</span>
+      </div>
+    </div>
+    <div id="custom-section" style="display:none;">
+      <p style="font-size:0.82rem; color:#888; margin-bottom:8px;">Set sessions per stall per day for each year:</p>
+      <table class="year-table">
+        <thead><tr><th>Year</th><th>Sessions/Stall/Day</th></tr></thead>
+        <tbody id="custom-rows"></tbody>
+      </table>
+    </div>
+  </div>
+
+  <!-- Output -->
+  <div class="panel">
+    <div class="panel-title">Projections (15-Year)</div>
+
+    <!-- Fee row -->
+    <div class="results-row">
+      <div class="result-card">
+        <div class="label">Year 1 Tesla Fee</div>
+        <div class="value" id="yr1">--</div>
+      </div>
+      <div class="result-card">
+        <div class="label">Fee per Port (Yr 1)</div>
+        <div class="value" id="perPort">--</div>
+        <div class="sub" id="perPortSub"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">5-Year Cumulative Fee</div>
+        <div class="value" id="cum5">--</div>
+        <div class="sub" id="cum5avg"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">10-Year Cumulative Fee</div>
+        <div class="value" id="cum10">--</div>
+        <div class="sub" id="cum10avg"></div>
+      </div>
+    </div>
+
+    <!-- Revenue row -->
+    <div id="revenueCards" class="results-row">
+      <div class="result-card">
+        <div class="label">Year 1 Revenue</div>
+        <div class="value green" id="rev1">--</div>
+      </div>
+      <div class="result-card">
+        <div class="label">Year 1 Net Profit</div>
+        <div class="value green" id="profit1">--</div>
+        <div class="sub" id="profit1margin"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">Fee % of Revenue</div>
+        <div class="value amber" id="feeRevPct">--</div>
+        <div class="sub" id="feeRevPctSub"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">Fee % of Gross Margin</div>
+        <div class="value amber" id="feeProfPct">--</div>
+        <div class="sub" id="feeProfPctSub"></div>
+      </div>
+    </div>
+
+    <!-- Payback row -->
+    <div id="paybackCards" class="results-row">
+      <div class="result-card">
+        <div class="label">Payback Period</div>
+        <div class="value blue" id="payback">--</div>
+        <div class="sub" id="paybackSub"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">15-Year Cumulative Profit</div>
+        <div class="value green" id="cum15profit">--</div>
+        <div class="sub" id="cum15roi"></div>
+      </div>
+      <div class="result-card">
+        <div class="label">15-Year Tesla Fees</div>
+        <div class="value" id="cum15fee">--</div>
+        <div class="sub" id="cum15feePct"></div>
+      </div>
+    </div>
+
+    <div class="chart-wrap">
+      <canvas id="chart"></canvas>
+    </div>
+  </div>
+</div>
+
+<script>
+  const YEARS = 15;
+  let mode = 'fixed';
+  let chart = null;
+  let laborCost = 55000;
+
+  const $ = id => document.getElementById(id);
+
+  // --- Investment ---
+  function setLabor(v) {
+    laborCost = v;
+    document.querySelectorAll('.labor-btns button').forEach(b => b.classList.remove('active'));
+    if (v === 45000) $('labor-low').classList.add('active');
+    else if (v === 55000) $('labor-med').classList.add('active');
+    else $('labor-high').classList.add('active');
+    const perPost = 55000 + 3000 + 3000 + 1500 + v;
+    $('laborDisp').textContent = '$' + v.toLocaleString();
+    $('perPostCost').textContent = '$' + perPost.toLocaleString();
+    $('postCost').value = perPost;
+    updateTotalInvest();
+    calculate();
+  }
+
+  function updateTotalInvest() {
+    const stalls = parseFloat($('stalls').value) || 0;
+    const perPost = parseFloat($('postCost').value) || 0;
+    $('totalInvest').textContent = '$' + (stalls * perPost).toLocaleString();
+  }
+
+  // --- Utilization ---
+  function buildCustomRows() {
+    const base = parseFloat($('sessions').value) || 6;
+    const tbody = $('custom-rows');
+    tbody.innerHTML = '';
+    for (let y = 1; y <= YEARS; y++) {
+      const tr = document.createElement('tr');
+      const growth = Math.pow(1 + (parseFloat($('fixedPct').value) || 7) / 100, y - 1);
+      tr.innerHTML = `<td>Year ${y}</td><td><input type="number" id="cy${y}" value="${(base * growth).toFixed(1)}" min="0" max="200" step="0.1"></td>`;
+      tbody.appendChild(tr);
+    }
+    tbody.querySelectorAll('input').forEach(inp => inp.addEventListener('input', calculate));
+  }
+
+  function setMode(m) {
+    mode = m;
+    $('btn-fixed').classList.toggle('active', m === 'fixed');
+    $('btn-custom').classList.toggle('active', m === 'custom');
+    $('fixed-section').style.display = m === 'fixed' ? '' : 'none';
+    $('custom-section').style.display = m === 'custom' ? '' : 'none';
+    if (m === 'custom') buildCustomRows();
+    calculate();
+  }
+
+  function getSessionsForYear(y) {
+    const base = parseFloat($('sessions').value) || 6;
+    if (mode === 'fixed') {
+      const pct = parseFloat($('fixedPct').value) || 0;
+      return base * Math.pow(1 + pct / 100, y - 1);
+    }
+    const el = $(`cy${y}`);
+    return el ? parseFloat(el.value) || 0 : base;
+  }
+
+  // --- Rate getters ---
+  function getFeeForYear(y) {
+    const baseFee = parseFloat($('fee').value) || 0;
+    if (!$('escalationOn').checked) return baseFee;
+    const esc = parseFloat($('escalation').value) || 0;
+    return baseFee * Math.pow(1 + esc / 100, y - 1);
+  }
+
+  function getCustPriceForYear(y) {
+    const base = parseFloat($('custPrice').value) || 0;
+    if (!$('custPriceEscOn').checked) return base;
+    const esc = parseFloat($('custPriceEsc').value) || 0;
+    return base * Math.pow(1 + esc / 100, y - 1);
+  }
+
+  function getUtilCostForYear(y) {
+    const base = parseFloat($('utilCost').value) || 0;
+    if (!$('utilCostEscOn').checked) return base;
+    const esc = parseFloat($('utilCostEsc').value) || 0;
+    return base * Math.pow(1 + esc / 100, y - 1);
+  }
+
+  function getEnergyLoss() {
+    if (!$('lossOn').checked) return 0;
+    return (parseFloat($('energyLoss').value) || 0) / 100;
+  }
+
+  // --- Formatting ---
+  function fmt(v) {
+    const neg = v < 0 ? '-' : '';
+    const a = Math.abs(v);
+    if (a >= 1_000_000) return neg + '$' + (a / 1_000_000).toFixed(2) + 'M';
+    if (a >= 10_000) return neg + '$' + (a / 1_000).toFixed(1) + 'K';
+    return neg + '$' + a.toLocaleString('en-US', { minimumFractionDigits: 0, maximumFractionDigits: 0 });
+  }
+
+  function pct(v) { return v.toFixed(1) + '%'; }
+
+  // --- Main calculation ---
+  function calculate() {
+    const stalls = parseFloat($('stalls').value) || 0;
+    const kwh = parseFloat($('kwh').value) || 0;
+    const revOn = $('revenueOn').checked;
+    const investOn = $('investOn').checked;
+    const loss = getEnergyLoss();
+    const deliveredRatio = 1 - loss; // 0.87 with 13% loss
+
+    updateTotalInvest();
+
+    const yearlyFee = [], yearlyRev = [], yearlyProfit = [], cumProfitArr = [];
+    let cumFee = 0, cumFee5 = 0, cumFee10 = 0;
+    let cumProfit = 0;
+
+    // Initial investment (Year 0)
+    const perPost = parseFloat($('postCost').value) || 0;
+    const initialInvest = investOn ? stalls * perPost : 0;
+    cumProfit = -initialInvest;
+    cumProfitArr.push(cumProfit);
+
+    for (let y = 1; y <= YEARS; y++) {
+      const sess = getSessionsForYear(y);
+      const gridKwh = stalls * sess * 365 * kwh;
+      const fee = getFeeForYear(y);
+      const annualFee = gridKwh * fee;
+      yearlyFee.push(annualFee);
+      cumFee += annualFee;
+      if (y === 5) cumFee5 = cumFee;
+      if (y === 10) cumFee10 = cumFee;
+
+      if (revOn) {
+        const custP = getCustPriceForYear(y);
+        const utilC = getUtilCostForYear(y);
+        const rev = gridKwh * deliveredRatio * custP;
+        const cost = gridKwh * (utilC + fee);
+        const profit = rev - cost;
+        yearlyRev.push(rev);
+        yearlyProfit.push(profit);
+        cumProfit += profit;
+      } else {
+        cumProfit = 0; // not tracking
+      }
+      cumProfitArr.push(cumProfit);
+    }
+
+    const lastYr = YEARS - 1;
+
+    // Fee cards
+    const perPortYr1 = stalls > 0 ? yearlyFee[0] / stalls : 0;
+    const perPortYrLast = stalls > 0 ? yearlyFee[lastYr] / stalls : 0;
+    $('yr1').textContent = fmt(yearlyFee[0]);
+    $('perPort').textContent = fmt(perPortYr1);
+    $('perPortSub').textContent = perPortYr1 !== perPortYrLast
+      ? `${fmt(perPortYrLast)}/port by Yr ${YEARS}` : '';
+    $('cum5').textContent = fmt(cumFee5);
+    $('cum5avg').textContent = `${fmt(cumFee5 / 5)}/yr avg`;
+    $('cum10').textContent = fmt(cumFee10);
+    $('cum10avg').textContent = `${fmt(cumFee10 / 10)}/yr avg`;
+
+    // Revenue cards
+    const showRev = revOn;
+    $('revenueCards').style.display = showRev ? '' : 'none';
+    if (showRev) {
+      const feeRevPct1 = yearlyRev[0] > 0 ? (yearlyFee[0] / yearlyRev[0]) * 100 : 0;
+      const feeRevPctL = yearlyRev[lastYr] > 0 ? (yearlyFee[lastYr] / yearlyRev[lastYr]) * 100 : 0;
+      const grossMargin1 = yearlyProfit[0] + yearlyFee[0];
+      const feeProfPct1 = grossMargin1 > 0 ? (yearlyFee[0] / grossMargin1) * 100 : 0;
+      const grossMarginL = yearlyProfit[lastYr] + yearlyFee[lastYr];
+      const feeProfPctL = grossMarginL > 0 ? (yearlyFee[lastYr] / grossMarginL) * 100 : 0;
+      const margin1 = yearlyRev[0] > 0 ? (yearlyProfit[0] / yearlyRev[0]) * 100 : 0;
+
+      $('rev1').textContent = fmt(yearlyRev[0]);
+      $('profit1').textContent = fmt(yearlyProfit[0]);
+      $('profit1margin').textContent = `${pct(margin1)} net margin`;
+      $('feeRevPct').textContent = pct(feeRevPct1);
+      $('feeRevPctSub').textContent = `${pct(feeRevPctL)} by Yr ${YEARS}`;
+      $('feeProfPct').textContent = pct(feeProfPct1);
+      $('feeProfPctSub').textContent = `${pct(feeProfPctL)} by Yr ${YEARS}`;
+    }
+
+    // Payback cards
+    const showPayback = showRev && investOn;
+    $('paybackCards').style.display = showPayback ? '' : 'none';
+    if (showPayback) {
+      // Find payback year (first year cumProfit turns positive)
+      let paybackYr = null;
+      for (let i = 1; i <= YEARS; i++) {
+        if (cumProfitArr[i] >= 0) { paybackYr = i; break; }
+      }
+      $('payback').textContent = paybackYr ? `Year ${paybackYr}` : `${YEARS}+`;
+      $('paybackSub').textContent = paybackYr
+        ? `Recoups ${fmt(initialInvest)} investment`
+        : `Still ${fmt(Math.abs(cumProfitArr[YEARS]))} underwater`;
+
+      $('cum15profit').textContent = fmt(cumProfitArr[YEARS]);
+      const roi = initialInvest > 0 ? (cumProfitArr[YEARS] / initialInvest * 100) : 0;
+      $('cum15roi').textContent = `${pct(roi)} ROI on ${fmt(initialInvest)}`;
+
+      $('cum15fee').textContent = fmt(cumFee);
+      let totalRev = 0;
+      yearlyRev.forEach(r => totalRev += r);
+      const feePctTotal = totalRev > 0 ? (cumFee / totalRev * 100) : 0;
+      $('cum15feePct').textContent = `${pct(feePctTotal)} of lifetime revenue`;
+    }
+
+    renderChart(yearlyFee, yearlyRev, yearlyProfit, cumProfitArr, showRev, showPayback);
+  }
+
+  function renderChart(yearlyFee, yearlyRev, yearlyProfit, cumProfitArr, showRev, showPayback) {
+    const ctx = $('chart').getContext('2d');
+    const labels = yearlyFee.map((_, i) => `Year ${i + 1}`);
+
+    const cumFee = [];
+    let cf = 0;
+    yearlyFee.forEach(v => { cf += v; cumFee.push(cf); });
+
+    if (chart) chart.destroy();
+
+    const datasets = [
+      {
+        label: 'Tesla Fee',
+        data: yearlyFee,
+        backgroundColor: 'rgba(227, 25, 55, 0.8)',
+        borderColor: 'rgba(227, 25, 55, 1)',
+        borderWidth: 1,
+        borderRadius: 4,
+        order: 4
+      }
+    ];
+
+    if (showRev) {
+      datasets.push({
+        label: 'Revenue',
+        data: yearlyRev,
+        type: 'line',
+        borderColor: 'rgba(76, 175, 80, 0.9)',
+        pointBackgroundColor: 'rgba(76, 175, 80, 1)',
+        pointRadius: 2, pointHoverRadius: 5, borderWidth: 2,
+        fill: false, tension: 0.3, yAxisID: 'y', order: 2
+      });
+      datasets.push({
+        label: 'Net Profit',
+        data: yearlyProfit,
+        type: 'line',
+        borderColor: 'rgba(255, 152, 0, 0.9)',
+        pointBackgroundColor: 'rgba(255, 152, 0, 1)',
+        pointRadius: 2, pointHoverRadius: 5, borderWidth: 2,
+        borderDash: [6, 3],
+        fill: false, tension: 0.3, yAxisID: 'y', order: 3
+      });
+    }
+
+    if (showPayback) {
+      // Cumulative profit (includes initial investment) on right axis
+      datasets.push({
+        label: 'Cumulative Profit',
+        data: cumProfitArr.slice(1), // skip year 0
+        type: 'line',
+        borderColor: 'rgba(100, 180, 255, 0.9)',
+        pointBackgroundColor: 'rgba(100, 180, 255, 1)',
+        pointRadius: 2, pointHoverRadius: 5, borderWidth: 2,
+        fill: false, tension: 0.3, yAxisID: 'yCum', order: 1
+      });
+    } else {
+      datasets.push({
+        label: 'Cumulative Fee',
+        data: cumFee,
+        type: 'line',
+        borderColor: 'rgba(100, 180, 255, 0.9)',
+        pointBackgroundColor: 'rgba(100, 180, 255, 1)',
+        pointRadius: 2, pointHoverRadius: 5, borderWidth: 2,
+        fill: false, tension: 0.3, yAxisID: 'yCum', order: 1
+      });
+    }
+
+    const rightAxisLabel = showPayback ? 'Cumulative Profit ($)' : 'Cumulative Fee ($)';
+
+    chart = new Chart(ctx, {
+      type: 'bar',
+      data: { labels, datasets },
+      options: {
+        responsive: true,
+        maintainAspectRatio: false,
+        interaction: { mode: 'index', intersect: false },
+        plugins: {
+          legend: {
+            labels: { color: '#999', font: { size: 11 }, usePointStyle: true, pointStyleWidth: 16 }
+          },
+          tooltip: {
+            backgroundColor: '#222',
+            titleColor: '#fff',
+            bodyColor: '#ccc',
+            borderColor: '#444',
+            borderWidth: 1,
+            padding: 12,
+            callbacks: {
+              label: tipCtx => {
+                const v = tipCtx.raw;
+                return `${tipCtx.dataset.label}: ${fmt(v)}`;
+              },
+              afterBody: tooltipItems => {
+                const stalls = parseFloat($('stalls').value) || 1;
+                const yi = tooltipItems[0].dataIndex;
+                const fee = yearlyFee[yi];
+                const perPort = fee / stalls;
+                const feeRate = getFeeForYear(yi + 1);
+                const lines = [''];
+                lines.push(`Per Port: ${fmt(perPort)}`);
+                if ($('escalationOn').checked && parseFloat($('escalation').value) > 0) {
+                  lines.push(`Fee Rate: $${feeRate.toFixed(4)}/kWh`);
+                }
+                if (showRev && yearlyRev.length) {
+                  const revPct = yearlyRev[yi] > 0 ? (fee / yearlyRev[yi] * 100).toFixed(1) : '0.0';
+                  const gm = yearlyProfit[yi] + fee;
+                  const profPct = gm > 0 ? (fee / gm * 100).toFixed(1) : '0.0';
+                  lines.push(`Fee = ${revPct}% of revenue`);
+                  lines.push(`Fee = ${profPct}% of gross margin`);
+                }
+                return lines;
+              }
+            }
+          }
+        },
+        scales: {
+          x: { ticks: { color: '#888' }, grid: { color: '#1f1f1f' } },
+          y: {
+            position: 'left',
+            title: { display: true, text: showRev ? 'Annual ($)' : 'Annual Fee ($)', color: '#999' },
+            ticks: {
+              color: '#e31937',
+              callback: v => {
+                const a = Math.abs(v);
+                const s = v < 0 ? '-' : '';
+                return s + '$' + (a >= 1000 ? (a/1000).toFixed(0) + 'K' : a);
+              }
+            },
+            grid: { color: '#1f1f1f' }
+          },
+          yCum: {
+            position: 'right',
+            title: { display: true, text: rightAxisLabel, color: '#999' },
+            ticks: {
+              color: '#64b4ff',
+              callback: v => {
+                const a = Math.abs(v);
+                const s = v < 0 ? '-' : '';
+                return s + '$' + (a >= 1000 ? (a/1000).toFixed(0) + 'K' : a);
+              }
+            },
+            grid: { drawOnChartArea: false }
+          }
+        }
+      }
+    });
+  }
+
+  // --- Wire up inputs ---
+  ['stalls', 'sessions', 'kwh', 'fee', 'fixedPct', 'escalation', 'energyLoss',
+   'custPrice', 'custPriceEsc', 'utilCost', 'utilCostEsc', 'postCost'].forEach(id => {
+    $(id).addEventListener('input', () => {
+      if (mode === 'custom' && (id === 'sessions' || id === 'fixedPct')) return;
+      calculate();
+    });
+  });
+
+  // Toggle handlers
+  function wireToggle(toggleId, inputId) {
+    $(toggleId).addEventListener('change', () => {
+      $(inputId).disabled = !$(toggleId).checked;
+      calculate();
+    });
+  }
+  wireToggle('escalationOn', 'escalation');
+  wireToggle('lossOn', 'energyLoss');
+  wireToggle('custPriceEscOn', 'custPriceEsc');
+  wireToggle('utilCostEscOn', 'utilCostEsc');
+
+  $('revenueOn').addEventListener('change', () => {
+    $('revenueBody').classList.toggle('panel-body-disabled', !$('revenueOn').checked);
+    calculate();
+  });
+
+  $('investOn').addEventListener('change', () => {
+    $('investBody').classList.toggle('panel-body-disabled', !$('investOn').checked);
+    calculate();
+  });
+
+  // Stalls also updates total investment
+  $('stalls').addEventListener('input', updateTotalInvest);
+
+  calculate();
+</script>
+</body>
+</html>
