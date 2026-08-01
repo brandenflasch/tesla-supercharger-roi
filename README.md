@@ -66,9 +66,19 @@ Takes Tesla's per-state electricity costs, EV driver selling prices, and utiliza
 - Color dots matching the map for each state
 
 ### Data Notes
-- **Maine ($0.008/kWh)** is flagged as a likely data anomaly (actual commercial rates are ~$0.15-0.18/kWh). A one-click fix to override Maine's energy cost to $0.15/kWh is included.
 - Assumes ~15% energy loss from grid to vehicle battery (baked into Tesla's energy cost figures)
 - Excludes parking rent and hardware taxes
+
+### Known Tesla data errors (all since corrected upstream)
+Tesla has shipped several order-of-magnitude errors in this API. Each was caught by sanity-checking a value against real commercial rates, and each was later fixed by Tesla:
+
+| Market | Field | Bad value | Corrected | Caught |
+|---|---|---|---|---|
+| Maine | energy cost | $0.008/kWh | $0.293/kWh | Apr 2026 |
+| Norway | cabinet | 39,300 NOK (~10× low) | 357,600 NOK | Jun 2026 |
+| Poland | energy cost | 0.45 PLN/kWh (~2× low) | 0.95 PLN/kWh | Aug 2026 |
+
+The lesson: treat any energy cost far below local commercial rates as suspect until reverified.
 
 ## Tech Stack
 
@@ -81,7 +91,19 @@ Single self-contained HTML file. No build step.
 
 ## Data Source
 
-All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint (April 2026) via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). The API returns per-state values for `averageEnergyCost`, `scMedianPriceToEVDriver`, and `scAvgUtilization`, keyed by `stateCode`.
+All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-08-01.** Raw archives live in `data/`.
+
+The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it with a same-origin `fetch` from a logged-in browser tab.
+
+### API semantics
+`stateCode` is required and validated **for the US only**; a bogus US state returns HTTP 500. Outside the US the parameter is ignored entirely — bogus, empty, and omitted all return the same national record. So an HTTP 500 always means "market not configured", never a wrong region code. That makes a country sweep reliable: hit every ISO 3166-1 alpha-2 code with no `stateCode` and read 200 vs 500.
+
+### Coverage (2026-08-01)
+- **32 markets priced.** Swept all 249 ISO alpha-2 codes: 31 non-US returned pricing, 217 returned 500.
+- **28 publicly launched** (localized configurator page returns 200). Up from 11 on 2026-06-04.
+- **4 priced with no public page:** `AE` `LV` `TR` `LI`.
+- **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — all still 500.
+- Liechtenstein (`LI`, ISO 438) is absent from world-atlas 110m, so it is counted in the data and ranked in the table but cannot render on the world map. Showing it would require the 50m atlas (739K vs 105K).
 
 ## Disclaimer
 

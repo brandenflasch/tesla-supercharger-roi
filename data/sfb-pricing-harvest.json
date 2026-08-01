@@ -21,7 +21,8 @@
       "cabinet": "scCabinetCost (per stall, native ccy)",
       "hardwarePerStall": "cabinet+otherHardware+services+shipping (full records only)"
     },
-    "note_2026_06_13": "Refreshed: Maine energy 0.008->0.293 (Tesla fixed). See sfb-pricing-full.json for intl sell-price + Norway hardware corrections."
+    "note_2026_06_13": "Refreshed: Maine energy 0.008->0.293 (Tesla fixed). See sfb-pricing-full.json for intl sell-price + Norway hardware corrections.",
+    "note_2026_08_01": "Aug 1 re-verify: all 51 usStates below re-fetched and IDENTICAL (no drift since Jun 13); Maine holds at 0.293 so the 0.15 override is no longer needed. Swept all 249 ISO alpha-2 codes: 31 non-US markets priced (LI/Liechtenstein is new to this archive and was never tested before), 217 return 500, US requires a stateCode. Key API semantics: stateCode is validated for US ONLY - outside the US it is ignored (bogus/empty/omitted all return the same national record), so a 500 is always 'market not configured', never a bad region code. Public pages: 28 of 32 markets now live, up from 11."
   },
   "live_with_pricing": [
     "US",
@@ -35,6 +36,7 @@
     "BE",
     "AT",
     "CH",
+    "LI",
     "NO",
     "SE",
     "DK",
@@ -77,7 +79,8 @@
     "TH",
     "MY",
     "CA",
-    "MX"
+    "MX",
+    "IN"
   ],
   "countries_full": {
     "US": {
@@ -640,5 +643,41 @@
       "p": 0.59,
       "u": 131.0
     }
-  }
+  },
+  "publicly_launched": [
+    "US",
+    "DE",
+    "FR",
+    "ES",
+    "IT",
+    "GB",
+    "NL",
+    "BE",
+    "AT",
+    "NO",
+    "SE",
+    "PL",
+    "PT",
+    "FI",
+    "IE",
+    "DK",
+    "RO",
+    "GR",
+    "HU",
+    "CZ",
+    "LU",
+    "SI",
+    "SK",
+    "HR",
+    "IS",
+    "LT",
+    "IL",
+    "CH"
+  ],
+  "priced_but_page_404": [
+    "LV",
+    "TR",
+    "AE",
+    "LI"
+  ]
 }

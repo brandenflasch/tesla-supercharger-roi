@@ -246,8 +246,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle theme">☀</button>
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 31 priced · 11 publicly live</div>
-    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of June&nbsp;13,&nbsp;2026</span></div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 32 priced · 28 publicly live</div>
+    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of August&nbsp;1,&nbsp;2026</span></div>
     <div style="margin-top:12px;">
       <a href="fee/" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--border-bright);border-radius:9px;background:var(--surface2);color:var(--accent);text-decoration:none;font-size:0.9rem;font-weight:600;transition:border-color .15s,transform .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.transform='none'">⚡ Supercharger Fee Calculator <span aria-hidden="true">→</span></a>
     </div>
@@ -264,9 +264,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="avail-section anim" style="--i:2">
     <div class="avail-head">
       <h2 id="mapTitle">Where Supercharger for Business Is Live</h2>
-      <span class="avail-count" id="availCount">31 markets</span>
+      <span class="avail-count" id="availCount">32 markets</span>
     </div>
-    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 13). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).</div>
+    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>32 markets</strong>, and a publicly-launched configurator in <strong>28</strong> of them (green, verified Aug 1). The other 4 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution.</div>
     <div class="map-zoom">
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
@@ -296,7 +296,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
         </div></div>
       </div>
       <div class="kpi-bar">
-        <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (31 mkts)</div></div>
+        <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-med">--</div><div class="kpi__label">Median Payback (32 mkts)</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--green" id="gkpi-best">--</div><div class="kpi__label">Fastest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--red" id="gkpi-worst">--</div><div class="kpi__label">Slowest Market</div></div>
         <div class="kpi"><div class="kpi__val kpi__val--accent" id="gkpi-fast">--</div><div class="kpi__label">Markets &lt;3yr Payback</div></div>
@@ -397,7 +397,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="cmp-section anim" style="--i:13">
     <div class="cmp-head">
       <h2>International Price &amp; ROI Comparison</h2>
-      <span class="cab-badge">31 priced markets</span>
+      <span class="cab-badge">32 priced markets</span>
     </div>
     <div class="cmp-sub">Real per-country hardware, install, fee and rate data from Tesla's pricing API, run through the same ROI model as the US analysis (per stall, 8-post site assumed for cabinet sharing). Pricing is national outside the US. <strong>Payback is currency-independent</strong> (CapEx and profit scale together), so it compares directly; monetary columns normalize to USD or EUR at live FX, or show each market's native currency.</div>
     <div class="cmp-controls">
@@ -445,7 +445,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="disc anim" style="--i:14">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
-    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of June&nbsp;13,&nbsp;2026.</strong> International FX via open.er-api.com (live). <em>Note: between the June 4 and June 13 pulls, Tesla corrected its earlier Maine ($0.008/kWh) and Norway (~10×-low hardware) data errors, and revised driver prices down in ~18 not-yet-launched markets.</em>
+    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of August&nbsp;1,&nbsp;2026.</strong> International FX via open.er-api.com (live). <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map.</em>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -1114,15 +1114,19 @@ const INTL = {
   BE: { n:'Belgium',              iso:56,  ccy:'EUR', e:0.134, p:0.69,   u:397.0, fee:0.087, hw:37500,    iL:28290,    iM:34500,    iH:40710 },
   AT: { n:'Austria',              iso:40,  ccy:'EUR', e:0.181, p:0.59,   u:220.0, fee:0.087, hw:37500,    iL:56785,    iM:69250,    iH:81715 },
   CH: { n:'Switzerland',          iso:756, ccy:'CHF', e:0.20,  p:0.60,   u:259.3, fee:0.079, hw:34200,    iL:61090,    iM:74500,    iH:87910 },
+  // Liechtenstein shares the Swiss hardware/install baseline but has its own energy,
+  // sell price, utilization and fee. NOTE: iso 438 is absent from world-atlas 110m
+  // (175 features), so LI is counted in the data but cannot render on the world map.
+  LI: { n:'Liechtenstein',        iso:438, ccy:'CHF', e:0.21,  p:0.70,   u:152.4, fee:0.081, hw:34200,    iL:61090,    iM:74500,    iH:87910 },
   NO: { n:'Norway',               iso:578, ccy:'NOK', e:1.01,  p:5.48,   u:169.5, fee:1.02,  hw:406370,   iL:265680,   iM:324000,   iH:382320 },
   SE: { n:'Sweden',               iso:752, ccy:'SEK', e:1.40,  p:5.79,   u:213.9, fee:0.94,  hw:406990,   iL:257480,   iM:314000,   iH:370520 },
   DK: { n:'Denmark',              iso:208, ccy:'DKK', e:0.84,  p:3.66,   u:228.6, fee:0.65,  hw:280000,   iL:328000,   iM:400000,   iH:472000 },
   FI: { n:'Finland',              iso:246, ccy:'EUR', e:0.133, p:0.38,   u:127.8, fee:0.087, hw:37500,    iL:24190,    iM:29500,    iH:34810 },
-  PL: { n:'Poland',               iso:616, ccy:'PLN', e:0.45,  p:2.47,   u:413.2, fee:0.37,  hw:159000,   iL:140630,   iM:171500,   iH:202370 },
+  PL: { n:'Poland',               iso:616, ccy:'PLN', e:0.95,  p:2.47,   u:413.2, fee:0.37,  hw:159000,   iL:140630,   iM:171500,   iH:202370 },
   PT: { n:'Portugal',             iso:620, ccy:'EUR', e:0.099, p:0.65,   u:451.0, fee:0.087, hw:37500,    iL:39360,    iM:48000,    iH:56640 },
   IE: { n:'Ireland',              iso:372, ccy:'EUR', e:0.254, p:0.68,   u:237.9, fee:0.087, hw:37500,    iL:51660,    iM:63000,    iH:74340 },
   CZ: { n:'Czechia',              iso:203, ccy:'CZK', e:4.40,  p:13.15,  u:401.1, fee:2.11,  hw:910000,   iL:902000,   iM:1100000,  iH:1298000 },
-  HU: { n:'Hungary',              iso:348, ccy:'HUF', e:52.99, p:190.25, u:386.7, fee:31.25, hw:13480000, iL:12136000, iM:14800000, iH:17464000 },
+  HU: { n:'Hungary',              iso:348, ccy:'HUF', e:52.99, p:190.25, u:386.7, fee:30.87, hw:13305225, iL:12136000, iM:14800000, iH:17464000 },
   GR: { n:'Greece',               iso:300, ccy:'EUR', e:0.171, p:0.51,   u:189.6, fee:0.087, hw:37500,    iL:49200,    iM:60000,    iH:70800 },
   RO: { n:'Romania',              iso:642, ccy:'RON', e:0.80,  p:2.55,   u:263.8, fee:0.46,  hw:196700,   iL:54940,    iM:67000,    iH:79060 },
   HR: { n:'Croatia',              iso:191, ccy:'EUR', e:0.144, p:0.55,   u:184.1, fee:0.087, hw:37500,    iL:48380,    iM:59000,    iH:69620 },
@@ -1145,9 +1149,12 @@ const FX_INTL_FB = { USD:1, EUR:0.92, GBP:0.79, CHF:0.89, AED:3.67, NOK:10.8, SE
 const INTL_BY_ISO = {};
 for (const cc in INTL) INTL_BY_ISO[INTL[cc].iso] = Object.assign({ cc }, INTL[cc]);
 
-// Markets with a publicly-launched configurator page (verified 2026-06-04 — the rest
+// Markets with a publicly-launched configurator page (re-verified 2026-08-01 — the rest
 // return pricing from the API but their public /supercharger-for-business page 404s).
-const LAUNCHED = new Set(['US','DE','FR','ES','IT','GB','NL','BE','AT','NO','SE']);
+// Aug 1 sweep: 28 of 32 priced markets now serve a localized page (no redirect, real
+// configurator markup). Only LV, TR, AE and LI still 404.
+const LAUNCHED = new Set(['US','DE','FR','ES','IT','GB','NL','BE','AT','NO','SE',
+  'PL','PT','FI','IE','DK','RO','GR','HU','CZ','LU','SI','SK','HR','IS','LT','IL','CH']);
 const SFB_LIVE_COLOR   = '#10b981';     // publicly live (page + pricing)
 const SFB_PRICED_COLOR = '#a78bfa';     // priced in API, no public page yet
 const SFB_US_COLOR     = 'var(--accent)'; // US (has per-state tool)
@@ -1185,7 +1192,11 @@ async function loadWorldMap() {
   worldData = await resp.json();
   drawWorldMap();
 }
-const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>31 markets</strong>, but a publicly-launched configurator in only <strong>11</strong> (green, verified Jun 13). The other 20 (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber).`;
+// Counts derive from the data so they cannot drift out of sync with INTL/LAUNCHED.
+const N_PRICED   = Object.keys(INTL).length;
+const N_LIVE     = LAUNCHED.size;
+const N_NO_PAGE  = N_PRICED - N_LIVE;
+const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>${N_PRICED} markets</strong>, and a publicly-launched configurator in <strong>${N_LIVE}</strong> of them (green, verified Aug 1). The other ${N_NO_PAGE} (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution.`;
 const US_SUB = `Per-state ROI across all 50 states + DC, from Tesla's US pricing. Hover any state for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
 
 // The three view buttons drive ONE map area: World/EMEA show the availability map
@@ -1211,7 +1222,7 @@ function setMapView(v) {
     if (va) va.style.display = 'block';
     if (title) title.textContent = 'Where Supercharger for Business Is Live';
     if (sub) sub.innerHTML = AVAIL_SUB;
-    if (badge) badge.textContent = '31 markets';
+    if (badge) badge.textContent = N_PRICED + ' markets';
     drawWorldMap();
   }
 }
@@ -1398,7 +1409,7 @@ function renderAvailLegend() {
   if (!el) return;
   let items;
   if (mapMetric === 'tier') {
-    items = [['var(--accent)', 'U.S. — per-state tool'], ['#10b981', 'Publicly live (page + pricing) — 11'], ['#a78bfa', 'Priced in API, no public page — 20'], ['#fbbf24', 'Announced, not priced'], ['var(--surface3)', 'Not a market']];
+    items = [['var(--accent)', 'U.S. — per-state tool'], ['#10b981', 'Publicly live (page + pricing) — ' + N_LIVE], ['#a78bfa', 'Priced in API, no public page — ' + N_NO_PAGE], ['#fbbf24', 'Announced, not priced'], ['var(--surface3)', 'Not a market']];
   } else {
     items = availLegendItems().map(([l, c]) => [c, l]).concat([['var(--surface3)', 'No pricing']]);
   }
@@ -1474,7 +1485,7 @@ function highlightCountry(cc, on) {
   if (p) p.classList.toggle('active', on);
 }
 
-// The availability-view side panel: all 31 priced markets ranked by payback,
+// The availability-view side panel: all 32 priced markets ranked by payback,
 // with launch dots, hover-to-highlight on the map, and click-to-jump to the table.
 function renderMarketList() {
   const el = document.getElementById('mktList');
