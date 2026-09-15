@@ -197,6 +197,19 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 #cmpBody tr.cmp-flash { animation: cmpFlash 2.2s ease-out; }
 @media (max-width: 768px) { .cmp-chart-box { height: 560px; } }
 
+/* Semi Charging for Business section */
+.semi-specs { display: grid; grid-template-columns: 1fr 1fr; gap: 12px; margin-bottom: 16px; }
+.semi-card { background: var(--surface2); border: 1px solid var(--border); border-radius: 10px; padding: 14px; }
+.semi-card h3 { font-size: 13px; font-weight: 600; margin-bottom: 2px; }
+.semi-card .semi-tag { font-size: 11px; color: var(--text-dim); margin-bottom: 10px; line-height: 1.45; }
+.semi-card dl { display: grid; grid-template-columns: auto 1fr; gap: 4px 14px; }
+.semi-card dt { font-family: var(--font-mono); font-size: 9px; text-transform: uppercase; letter-spacing: 0.5px; color: var(--text-dim); align-self: center; }
+.semi-card dd { font-size: 12px; font-weight: 600; font-variant-numeric: tabular-nums; }
+.semi-pend { color: var(--text-muted); }
+.dtable a.semi-loc { color: var(--accent); font-family: var(--font-mono); font-size: 10px; text-decoration: none; }
+.dtable a.semi-loc:hover { text-decoration: underline; }
+@media (max-width: 768px) { .semi-specs { grid-template-columns: 1fr; } }
+
 /* Availability (world) section */
 .avail-section { background: var(--surface); border: 1px solid var(--border); border-radius: 12px; padding: 20px; margin-bottom: 20px; }
 .avail-head { display: flex; align-items: center; gap: 12px; flex-wrap: wrap; margin-bottom: 4px; }
@@ -246,7 +259,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle theme">☀</button>
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 32 priced · 28 publicly live</div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 32 priced · 28 publicly live · <a href="#semiSection" style="color:#f97316;text-decoration:none;white-space:nowrap;">🚛 Semi Charging: 6 markets</a></div>
     <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of August&nbsp;1,&nbsp;2026</span></div>
     <div style="margin-top:12px;">
       <a href="fee/" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--border-bright);border-radius:9px;background:var(--surface2);color:var(--accent);text-decoration:none;font-size:0.9rem;font-weight:600;transition:border-color .15s,transform .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.transform='none'">⚡ Supercharger Fee Calculator <span aria-hidden="true">→</span></a>
@@ -442,10 +455,78 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
     <div class="cmp-note"><strong>Payback is an idealized year-1 figure</strong> at Tesla's assumed average utilization — no ramp-up, downtime, demand charges or rent — so real-world is longer everywhere; use it to rank markets, not as a guarantee. <span id="cmpFx"></span> Energy/sell/fee are per-kWh.</div>
   </div>
 
-  <div class="disc anim" style="--i:14">
+  <!-- Semi Charging for Business -->
+  <div class="cmp-section anim" style="--i:14" id="semiSection">
+    <div class="cmp-head">
+      <h2>🚛 Semi Charging for Business</h2>
+      <span class="cab-badge" id="semiCount" style="background:rgba(249,115,22,0.12);color:#f97316">6 markets</span>
+    </div>
+    <div class="cmp-sub" id="semiSub"></div>
+    <div class="semi-specs">
+      <div class="semi-card">
+        <h3>Megacharger</h3>
+        <div class="semi-tag">Ultra-fast charging for quick stops. Up to 60% of range in 30 minutes. One cabinet serves 2 posts.</div>
+        <dl>
+          <dt>Post Output</dt><dd>1.2 MW</dd>
+          <dt>Cabinet Output</dt><dd>Up to 1,200 kW, shared by 2 posts</dd>
+          <dt>Continuous Current</dt><dd>1,500 A</dd>
+          <dt>Standard</dt><dd>MCS 3.2</dd>
+          <dt>Cabinet-to-Post</dt><dd>Up to 60 m</dd>
+        </dl>
+      </div>
+      <div class="semi-card">
+        <h3>Basecharger</h3>
+        <div class="semi-tag">Lower-power charging for depots and overnight stops. Up to 60% of range in four hours.</div>
+        <dl>
+          <dt>Output</dt><dd>120 kW DC / 125 kW AC</dd>
+          <dt>Continuous Current</dt><dd>150 A</dd>
+          <dt>Voltage Range</dt><dd>180–1000 VDC</dd>
+          <dt>Cable Length</dt><dd>6 m</dd>
+          <dt>Deliveries</dt><dd>Est. early 2027 (U.S. page)</dd>
+        </dl>
+      </div>
+    </div>
+    <div class="cmp-controls">
+      <div class="ctlgrp"><label>Display</label><div class="seg" id="segSemiDisplay">
+        <button class="segbtn active" data-v="USD">$ USD</button>
+        <button class="segbtn" data-v="EUR">€ EUR</button>
+        <button class="segbtn" data-v="NATIVE">Native</button>
+      </div></div>
+      <div class="ctlgrp"><label>Megacharger Posts</label><div class="seg" id="segSemiMega">
+        <button class="segbtn" data-v="0">0</button>
+        <button class="segbtn active" data-v="2">2</button>
+        <button class="segbtn" data-v="4">4</button>
+        <button class="segbtn" data-v="8">8</button>
+      </div></div>
+      <div class="ctlgrp"><label>Basecharger Posts</label><div class="seg" id="segSemiBase">
+        <button class="segbtn active" data-v="0">0</button>
+        <button class="segbtn" data-v="2">2</button>
+        <button class="segbtn" data-v="4">4</button>
+        <button class="segbtn" data-v="8">8</button>
+      </div></div>
+    </div>
+    <div class="table-scroll">
+      <table class="dtable" id="semiTable">
+        <thead><tr>
+          <th>Market</th>
+          <th>Configurator</th>
+          <th class="num">Megacharger/Post</th>
+          <th class="num">Basecharger/Post</th>
+          <th class="num">Services/Post</th>
+          <th class="num">Shipping/Post</th>
+          <th class="num">Tesla Fee</th>
+          <th class="num" id="semiTotalHead">Est. Purchase Price</th>
+        </tr></thead>
+        <tbody id="semiBody"></tbody>
+      </table>
+    </div>
+    <div class="cmp-note" id="semiNote"></div>
+  </div>
+
+  <div class="disc anim" style="--i:15">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
-    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of August&nbsp;1,&nbsp;2026.</strong> International FX via open.er-api.com (live). <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map.</em>
+    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of August&nbsp;1,&nbsp;2026.</strong> International FX via open.er-api.com (live). Semi Charging for Business: market pages verified September&nbsp;14,&nbsp;2026 on tesla.com; product specs from Tesla's U.S. Semi Charging for Business page; pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint (<code>productType=SemiCharger</code>). Tesla does not publish energy cost, driver price or utilization for Semi, so the Semi section shows purchase price only, with no payback. <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map.</em>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -1160,6 +1241,27 @@ const SFB_PRICED_COLOR = '#a78bfa';     // priced in API, no public page yet
 const SFB_US_COLOR     = 'var(--accent)'; // US (has per-state tool)
 const SFB_SOON_COLOR   = '#fbbf24';     // announced, not priced
 
+// ===== SEMI CHARGING FOR BUSINESS (data) =====
+// Markets with a localized /semi-charging-for-business page (HTTP 200, verified 2026-09-14).
+// 404 on the same date: en_CA, fr_CH, de_AT, it_IT, es_ES.
+// Price fields mirror Tesla's /api/energy/semi-charging/pricing?productType=SemiCharger record:
+//   m = semiChargerMegachargerCostPerPost, b = semiChargerBasechargerCostPerPost,
+//   s = semiChargerServicesCostPerPost,    sh = semiChargerShippingCostPerPost,
+//   fee = semiChargerAllInclusiveFee (per kWh), feeD = semiChargerAllInclusiveFeeDiscounted
+//   (returned by the API, NOT shown by Tesla's configurator). Harvested 2026-09-15; raw
+//   archive in data/semi-pricing-2026-09-15.json. fee is 0.08 in USD, EUR and GBP alike.
+// The API has NO energy cost, driver price or utilization, so no payback is computed.
+const SEMI = {
+  US: { n:'United States', ccy:'USD', locs:['en_US'], m:89500, b:15500, s:3000, sh:1500, fee:0.08, feeD:0.03 },
+  DE: { n:'Germany', ccy:'EUR', locs:['de_DE'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
+  FR: { n:'France', ccy:'EUR', locs:['fr_FR'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
+  NL: { n:'Netherlands', ccy:'EUR', locs:['nl_NL'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
+  BE: { n:'Belgium', ccy:'EUR', locs:['nl_BE','fr_BE'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
+  GB: { n:'United Kingdom', ccy:'GBP', locs:['en_GB'], m:66625, b:11625, s:2250, sh:1125, fee:0.08, feeD:0.03 }
+};
+const SEMI_PRICED_ASOF = 'September 15, 2026';
+const N_SEMI = Object.keys(SEMI).length;
+
 // Returns { tier, name, d } for a world-atlas feature, or null.
 function sfbLookup(f) {
   const id = parseInt(f.id, 10);
@@ -1196,7 +1298,7 @@ async function loadWorldMap() {
 const N_PRICED   = Object.keys(INTL).length;
 const N_LIVE     = LAUNCHED.size;
 const N_NO_PAGE  = N_PRICED - N_LIVE;
-const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>${N_PRICED} markets</strong>, and a publicly-launched configurator in <strong>${N_LIVE}</strong> of them (green, verified Aug 1). The other ${N_NO_PAGE} (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution.`;
+const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>${N_PRICED} markets</strong>, and a publicly-launched configurator in <strong>${N_LIVE}</strong> of them (green, verified Aug 1). The other ${N_NO_PAGE} (violet) return real pricing yet their public page 404s &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. is the only market with per-state pricing and the 50-state view. Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution. Semi Charging for Business is live in ${N_SEMI} of these markets &mdash; see the Semi section below.`;
 const US_SUB = `Per-state ROI across all 50 states + DC, from Tesla's US pricing. Hover any state for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
 
 // The three view buttons drive ONE map area: World/EMEA show the availability map
@@ -1306,7 +1408,8 @@ function showCountryTT(ev, r) {
     const m = v => fmtMoneyIn(v, d.ccy, mapDisplay);
     const mr = v => fmtMoneyIn(v, d.ccy, mapDisplay, 'rate');
     const status = r.tier === 'priced' ? `<span class="warn">Priced in API · public configurator not launched</span>` : '';
-    ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>${status}
+    const semiLine = SEMI[d.cc] ? `<span class="warn" style="color:#f97316">🚛 Semi Charging for Business also live</span>` : '';
+    ttEl.innerHTML = `<h3>${r.name}${d.us ? ' 🇺🇸' : ''}</h3>${status}${semiLine}
       <dl class="tt-grid">
         <dt>Energy</dt><dd>${mr(d.e)}/kWh</dd>
         <dt>Sell Price</dt><dd>${mr(d.p)}/kWh</dd>
@@ -1628,6 +1731,63 @@ function initCompare() {
   });
 }
 
+// ===== SEMI CHARGING FOR BUSINESS =====
+let semiDisplay = 'USD';
+let semiMegaPosts = 2;
+let semiBasePosts = 0;
+
+function semiPageUrl(loc) {
+  return loc === 'en_US' ? 'https://www.tesla.com/semi-charging-for-business' : `https://www.tesla.com/${loc}/semi-charging-for-business`;
+}
+function semiHasPricing(d) { return d.m != null && d.s != null && d.sh != null; }
+// Same formula as Tesla's configurator: Megacharger posts price in cabinet pairs
+// (ceil(posts/2) * 2), plus services and shipping on every post. Taxes and install excluded.
+function semiPurchasePrice(d) {
+  if (!semiHasPricing(d)) return null;
+  if (semiBasePosts > 0 && d.b == null) return null;
+  const megaPriced = Math.ceil(semiMegaPosts / 2) * 2;
+  return d.m * megaPriced + (d.b || 0) * semiBasePosts + (d.s + d.sh) * (semiMegaPosts + semiBasePosts);
+}
+function renderSemi() {
+  const tb = document.getElementById('semiBody');
+  if (!tb) return;
+  const sub = document.getElementById('semiSub');
+  if (sub) sub.innerHTML = `Tesla sells its Semi chargers to fleets and site hosts in <strong>${N_SEMI} markets</strong>: the U.S. plus Germany, France, the Netherlands, Belgium and the U.K. (European pages verified September 14, 2026). The pricing API returns hardware, services, shipping and Tesla's all-inclusive fee &mdash; but <strong>no energy cost, driver price or utilization</strong>, so this section shows the purchase price only, not payback. Minimum order is two posts.`;
+  const money = (v, d, kind) => v == null ? '<span class="semi-pend">—</span>' : fmtMoneyIn(v, d.ccy, semiDisplay, kind);
+  const cc = Object.keys(SEMI);
+  tb.innerHTML = cc.map(k => {
+    const d = SEMI[k];
+    const links = d.locs.map(l => `<a class="semi-loc" href="${semiPageUrl(l)}" target="_blank" rel="noopener">${l}</a>`).join(' · ');
+    const total = semiPurchasePrice(d);
+    return `<tr data-cc="${k}">
+      <td><div class="state-cell"><span class="color-dot" style="background:#f97316"></span>${d.n}</div></td>
+      <td>${links}</td>
+      <td class="num">${money(d.m, d)}</td>
+      <td class="num">${money(d.b, d)}</td>
+      <td class="num">${money(d.s, d)}</td>
+      <td class="num">${money(d.sh, d)}</td>
+      <td class="num">${d.fee == null ? '<span class="semi-pend">—</span>' : money(d.fee, d, 'rate') + '/kWh'}</td>
+      <td class="num" style="font-weight:700">${money(total, d)}</td>
+    </tr>`;
+  }).join('');
+  const head = document.getElementById('semiTotalHead');
+  if (head) head.textContent = `Est. Price · ${semiMegaPosts} Mega + ${semiBasePosts} Base`;
+  const note = document.getElementById('semiNote');
+  if (note) {
+    const fx = semiDisplay === 'NATIVE' ? 'Showing each market in its own currency.' : `Normalized to ${semiDisplay} at ${fxLive ? 'live' : 'approx'} FX (open.er-api.com).`;
+    const status = SEMI_PRICED_ASOF
+      ? `Pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint as of ${SEMI_PRICED_ASOF}. The API returns the same 0.08/kWh fee in USD, EUR and GBP (not FX-scaled), plus a second "discounted" fee of 0.03/kWh that Tesla's configurator does not show.`
+      : `<strong>Price fields are pending</strong> a pull from Tesla's pricing API; market status and specs are verified.`;
+    note.innerHTML = `${status} Est. purchase price follows Tesla's configurator: Megacharger posts are priced in cabinet pairs, plus services and shipping per post. Excludes taxes and installation. ${fx}`;
+  }
+}
+function initSemi() {
+  if (!document.getElementById('semiBody')) return;
+  initSeg('segSemiDisplay', v => { semiDisplay = v; renderSemi(); });
+  initSeg('segSemiMega', v => { semiMegaPosts = parseInt(v, 10); renderSemi(); });
+  initSeg('segSemiBase', v => { semiBasePosts = parseInt(v, 10); renderSemi(); });
+}
+
 // ===== THEME =====
 function isDarkTheme() {
   const t = document.documentElement.getAttribute('data-theme');
@@ -1698,6 +1858,7 @@ async function loadFX() {
   updateFxNote();
   drawWorldMap();    // refresh tooltips with live FX
   renderCompare();   // refresh USD-normalized comparison with live FX
+  renderSemi();      // refresh the Semi table with live FX
 }
 
 // For the international comparison, represent the US by its 50-state + DC AVERAGE
@@ -1719,6 +1880,9 @@ initCurrencySelect();
 initCompare();
 initMapZoom();
 initAvailControls();
+initSemi();
+renderSemi();
+document.getElementById('mapSub').innerHTML = AVAIL_SUB;   // static HTML predates the Semi sentence
 renderAvailLegend();
 updateStaticMoney();
 renderCompare();

@@ -105,6 +105,29 @@ The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it 
 - **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — all still 500.
 - Liechtenstein (`LI`, ISO 438) is absent from world-atlas 110m, so it is counted in the data and ranked in the table but cannot render on the world map. Showing it would require the 50m atlas (739K vs 105K).
 
+## Semi Charging for Business
+
+A separate section covers Tesla's Semi charger program (Megacharger + Basecharger).
+
+- **Markets (verified 2026-09-14):** US, DE, FR, NL, BE (`nl_BE` + `fr_BE`), GB. Each localized `/semi-charging-for-business` page returns 200. `en_CA`, `fr_CH`, `de_AT`, `it_IT` and `es_ES` return 404.
+- **Endpoint:** `/api/energy/semi-charging/pricing?countryCode={CC}&productType=SemiCharger&stateCode=CA`. The configurator hardcodes `stateCode=CA`. Same Akamai gate as the Supercharger endpoint: the Puppeteer browser gets 403, so pull it from a logged-in Chrome tab.
+- **Fields:** `semiChargerMegachargerCostPerPost`, `semiChargerBasechargerCostPerPost`, `semiChargerServicesCostPerPost`, `semiChargerShippingCostPerPost`, `semiChargerAllInclusiveFee`, `currencyCode`.
+- **No payback.** The Semi record has no energy cost, driver price, utilization or install tiers, so the section shows purchase price only.
+- **Est. purchase price** uses the configurator formula: `megaCost × ceil(megaPosts/2) × 2 + baseCost × basePosts + (services + shipping) × allPosts`. Taxes and installation are excluded.
+- Data lives in the `SEMI` object in `index.html`. Set `SEMI_PRICED_ASOF` after a pull. Raw archive: `data/semi-pricing-2026-09-15.json`.
+
+### Semi pricing (2026-09-15)
+| Market | Ccy | Megacharger/post | Basecharger/post | Services/post | Shipping/post | Fee/kWh | Discounted fee |
+|---|---|---|---|---|---|---|---|
+| US | USD | 89,500 | 15,500 | 3,000 | 1,500 | 0.08 | 0.03 |
+| DE / FR / NL / BE | EUR | 77,675 | 13,175 | 2,550 | 1,275 | 0.08 | 0.03 |
+| GB | GBP | 66,625 | 11,625 | 2,250 | 1,125 | 0.08 | 0.03 |
+
+- US 2-post Megacharger = 89,500×2 + 4,500×2 = **$188,000**, which matches Electrek's May 1 report.
+- Basecharger, services and shipping are exactly 0.85× US (EUR) and 0.75× US (GBP). Megacharger is not: EUR is 0.8679× and GBP is 0.7444×.
+- The fee is 0.08 in every currency (not FX-scaled). `semiChargerAllInclusiveFeeDiscounted` (0.03) is not read by Tesla's configurator.
+- Akamai can answer HTTP 429 with `{"cpr_chlge":"true"}` after heavy automated traffic. A normal page load in Chrome cleared it.
+
 ## Disclaimer
 
 Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially from these calculations.

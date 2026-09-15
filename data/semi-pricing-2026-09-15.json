@@ -1,0 +1,26 @@
+{
+  "_meta": {
+    "source": "https://www.tesla.com/api/energy/semi-charging/pricing?countryCode={CC}&productType=SemiCharger&stateCode=CA",
+    "harvested_utc": "2026-09-15, between 01:18 GMT (last HTTP 429) and 05:32 GMT (time.google.com check); pulled from a logged-in Chrome tab",
+    "method": "same-origin fetch from https://www.tesla.com/semi-charging-for-business/get, one request per market, 3 s apart",
+    "markets_with_localized_page_200": ["en_US", "de_DE", "fr_FR", "nl_NL", "nl_BE", "fr_BE", "en_GB"],
+    "localized_page_404_2026-09-14": ["en_CA", "fr_CH", "de_AT", "it_IT", "es_ES"],
+    "notes": [
+      "The configurator hardcodes stateCode=CA for every country.",
+      "The record has no energy cost, driver price, utilization or install fields.",
+      "semiChargerAllInclusiveFeeDiscounted is returned but the configurator JS does not read it.",
+      "semiChargerAllInclusiveFee is 0.08 in USD, EUR and GBP alike (not FX-scaled).",
+      "Basecharger, services and shipping are exactly 0.85x US for EUR and 0.75x US for GBP. Megacharger is not: EUR 77675 = 0.8679x (0.85x would be 76075); GBP 66625 = 0.7444x (0.75x would be 67125).",
+      "US 2-post Megacharger subtotal = 89500*2 + (3000+1500)*2 = 188000, which matches the $188,000 Electrek reported on 2026-05-01.",
+      "First attempts returned HTTP 429 with body {\"cpr_chlge\":\"true\"} (Akamai challenge) after ~35 Puppeteer requests; a normal page load in Chrome cleared it."
+    ]
+  },
+  "records": {
+    "US": {"countryCode":"US","stateCode":"CA","semiChargerMegachargerCostPerPost":89500,"semiChargerBasechargerCostPerPost":15500,"semiChargerServicesCostPerPost":3000,"semiChargerShippingCostPerPost":1500,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"USD"},
+    "DE": {"countryCode":"DE","stateCode":"CA","semiChargerMegachargerCostPerPost":77675,"semiChargerBasechargerCostPerPost":13175,"semiChargerServicesCostPerPost":2550,"semiChargerShippingCostPerPost":1275,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"EUR"},
+    "FR": {"countryCode":"FR","stateCode":"CA","semiChargerMegachargerCostPerPost":77675,"semiChargerBasechargerCostPerPost":13175,"semiChargerServicesCostPerPost":2550,"semiChargerShippingCostPerPost":1275,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"EUR"},
+    "NL": {"countryCode":"NL","stateCode":"CA","semiChargerMegachargerCostPerPost":77675,"semiChargerBasechargerCostPerPost":13175,"semiChargerServicesCostPerPost":2550,"semiChargerShippingCostPerPost":1275,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"EUR"},
+    "BE": {"countryCode":"BE","stateCode":"CA","semiChargerMegachargerCostPerPost":77675,"semiChargerBasechargerCostPerPost":13175,"semiChargerServicesCostPerPost":2550,"semiChargerShippingCostPerPost":1275,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"EUR"},
+    "GB": {"countryCode":"GB","stateCode":"CA","semiChargerMegachargerCostPerPost":66625,"semiChargerBasechargerCostPerPost":11625,"semiChargerServicesCostPerPost":2250,"semiChargerShippingCostPerPost":1125,"semiChargerAllInclusiveFee":0.08,"semiChargerAllInclusiveFeeDiscounted":0.03,"currencyCode":"GBP"}
+  }
+}
