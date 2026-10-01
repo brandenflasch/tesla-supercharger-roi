@@ -192,6 +192,9 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 .cmp-chart-box { position: relative; height: 720px; }
 .cmp-chart-box canvas { width: 100% !important; height: 100% !important; }
 .cmp-note { margin-top: 12px; font-size: 10px; color: var(--text-dim); line-height: 1.5; }
+.cmp-warn { margin-top: 10px; padding: 11px 14px; border-left: 3px solid #d97706; background: rgba(217,119,6,0.07); border-radius: 0 6px 6px 0; font-size: 10px; color: var(--text-dim); line-height: 1.6; }
+.cmp-warn strong { color: var(--text); }
+.cmp-warn code { font-family: var(--font-mono); font-size: 9.5px; }
 .tt-hint { font-size: 9px; color: var(--text-muted); text-align: center; margin-top: 5px; font-family: var(--font-mono); }
 @keyframes cmpFlash { 0%, 12% { background: var(--accent-dim); box-shadow: inset 3px 0 0 var(--accent); } 100% { background: transparent; box-shadow: none; } }
 #cmpBody tr.cmp-flash { animation: cmpFlash 2.2s ease-out; }
@@ -453,6 +456,10 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       </table>
     </div>
     <div class="cmp-note"><strong>Payback is an idealized year-1 figure</strong> at Tesla's assumed average utilization — no ramp-up, downtime, demand charges or rent — so real-world is longer everywhere; use it to rank markets, not as a guarantee. <span id="cmpFx"></span> Energy/sell/fee are per-kWh.</div>
+    <div class="cmp-warn">
+      <strong>Confidence: the international utilization input is weaker than the US one.</strong>
+      A cross-check of Tesla's <code>scAvgUtilization</code> against independently measured stall occupancy reproduces Tesla's US per-state values — R&sup2;&nbsp;0.72 across 49 jurisdictions with a zero intercept (1.3 kWh on a mean of 337), which implies a 57.4&nbsp;kW mean power while a car is plugged. That agrees with Tesla's own published Tesla Diner throughput (52.8&nbsp;kW) and its fleet session figures (54&nbsp;kW). The same test fails outside the US: R&sup2;&nbsp;0.38 across 26 markets, a 75.4&nbsp;kWh/stall/day intercept, and implied power from 24 to 77&nbsp;kW on near-identical 200&ndash;250&nbsp;kW hardware. A non-zero intercept is not physical, because energy must stay proportional to occupied time. <strong>Use the US state ranking with high confidence. Treat the international ranking as provisional.</strong> Tesla also prices AE and LT, where no matched Supercharger sites exist to check against. Cross-check run October&nbsp;1,&nbsp;2026 against measured occupancy of August&nbsp;3,&nbsp;2026.
+    </div>
   </div>
 
   <!-- Semi Charging for Business -->
@@ -525,7 +532,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
 
   <div class="disc anim" style="--i:15">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
-    <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV).
+    <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV). Utilization is Tesla's own published <code>scAvgUtilization</code>; see the confidence note under the international comparison table — the US values reproduce against independently measured occupancy, the international values do not.
     <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of August&nbsp;1,&nbsp;2026.</strong> International FX via open.er-api.com (live). Semi Charging for Business: market pages verified September&nbsp;14,&nbsp;2026 on tesla.com; product specs from Tesla's U.S. Semi Charging for Business page; pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint (<code>productType=SemiCharger</code>). Tesla does not publish energy cost, driver price or utilization for Semi, so the Semi section shows purchase price only, with no payback. <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map.</em>
   </div>
 </div>
