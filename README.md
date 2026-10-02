@@ -91,14 +91,14 @@ Single self-contained HTML file. No build step.
 
 ## Data Source
 
-All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-08-01.** Raw archives live in `data/`.
+All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-10-01** (no change since 2026-08-01: all 32 markets, 51 US jurisdictions and the 249-code sweep are identical). Raw archives live in `data/`.
 
 The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it with a same-origin `fetch` from a logged-in browser tab.
 
 ### API semantics
 `stateCode` is required and validated **for the US only**; a bogus US state returns HTTP 500. Outside the US the parameter is ignored entirely — bogus, empty, and omitted all return the same national record. So an HTTP 500 always means "market not configured", never a wrong region code. That makes a country sweep reliable: hit every ISO 3166-1 alpha-2 code with no `stateCode` and read 200 vs 500.
 
-### Coverage (2026-08-01)
+### Coverage (2026-10-01, unchanged since 2026-08-01)
 - **32 markets priced.** Swept all 249 ISO alpha-2 codes: 31 non-US returned pricing, 217 returned 500.
 - **28 publicly launched** (localized configurator page returns 200). Up from 11 on 2026-06-04.
 - **4 priced with no public page:** `AE` `LV` `TR` `LI`.
