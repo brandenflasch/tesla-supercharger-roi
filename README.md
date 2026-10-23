@@ -91,18 +91,38 @@ Single self-contained HTML file. No build step.
 
 ## Data Source
 
-All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-10-01** (no change since 2026-08-01: all 32 markets, 51 US jurisdictions and the 249-code sweep are identical). Raw archives live in `data/`.
+All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-10-22.** All 31 earlier international markets and all 51 US jurisdictions are unchanged since 2026-08-01. New: Canada (per-province pricing). Raw archives live in `data/`.
 
 The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it with a same-origin `fetch` from a logged-in browser tab.
 
 ### API semantics
-`stateCode` is required and validated **for the US only**; a bogus US state returns HTTP 500. Outside the US the parameter is ignored entirely — bogus, empty, and omitted all return the same national record. So an HTTP 500 always means "market not configured", never a wrong region code. That makes a country sweep reliable: hit every ISO 3166-1 alpha-2 code with no `stateCode` and read 200 vs 500.
+`stateCode` is required and validated **for the US and Canada only**; a bogus US or Canadian state returns HTTP 500, and Canada with no `stateCode` returns HTTP 400 (`Missing required fields`). Everywhere else the parameter is ignored entirely — bogus, empty, and omitted all return the same national record. So an HTTP 500 always means "market not configured", never a wrong region code. That makes a country sweep reliable: hit every ISO 3166-1 alpha-2 code with no `stateCode` and read 200 vs 500. Treat a 400 as "priced per region" and re-query with region codes (this is how Canada appeared on 2026-10-22).
 
-### Coverage (2026-10-01, unchanged since 2026-08-01)
-- **32 markets priced.** Swept all 249 ISO alpha-2 codes: 31 non-US returned pricing, 217 returned 500.
-- **28 publicly launched** (localized configurator page returns 200). Up from 11 on 2026-06-04.
-- **4 priced with no public page:** `AE` `LV` `TR` `LI`.
-- **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — all still 500.
+### Coverage (2026-10-22)
+- **33 markets priced.** Swept all 249 ISO alpha-2 codes: 31 non-US returned pricing, 216 returned 500, `CA` returned 400 (needs a province).
+- **29 publicly launched** (localized `/supercharger-for-business/get/overview` returns 200). Up from 28 on 2026-10-01 (Canada: `en_CA`, `fr_CA`).
+- **4 priced with no public configurator:** `AE` `LV` `TR` `LI`. `AE` and `TR` now serve a localized `/supercharger-for-business` info page, but it has no configurator link and `/get/overview` still 404s.
+- **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — pricing still 500. Each now has an info page with no configurator, like `AE` and `TR`.
+
+### Canada (new 2026-10-22, CAD)
+Per-province, like the US. The page shows Ontario (largest market), the same way the US row uses California. NT, NU and YT return 500.
+
+Shared by every province: Tesla fee 0.14/kWh (PPU) and 0.085 (non-PPU), cabinet 78,000, other hardware 4,200, services 4,200, shipping 2,500, install 65,000 / 78,000 / 90,000.
+
+| Province | Energy $/kWh | Sell $/kWh | Util kWh/post/day |
+|---|---|---|---|
+| AB | 0.293 | 0.908 | 121.5 |
+| BC | 0.092 | 0.908 | 248.3 |
+| MB | 0.274 | 0.908 | 70.8 |
+| NB | 0.273 | 0.908 | 87.5 |
+| NL | 0.127 | 0.908 | 202.9 |
+| NS | 0.184 | 0.908 | 71.2 |
+| ON | 0.16 | 0.908 | 231.2 |
+| PE | 0.337 | 0.908 | 79.9 |
+| QC | 0.044 | 0.908 | 211.5 |
+| SK | 0.574 | 0.902 | 52.9 |
+
+Quebec's 0.044 is the lowest energy cost in the whole dataset. Per the data-error lesson above, verify it against Hydro-Québec's published commercial rate before relying on it.
 - Liechtenstein (`LI`, ISO 438) is absent from world-atlas 110m, so it is counted in the data and ranked in the table but cannot render on the world map. Showing it would require the 50m atlas (739K vs 105K).
 
 ## Semi Charging for Business
