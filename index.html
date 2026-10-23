@@ -814,7 +814,7 @@ function drawMap() {
     .on('mouseenter', function(ev, d) {
       const s = data[d.id];
       if (!s) {   // Canadian territories: no pricing
-        ttEl.innerHTML = `<h3>${d.properties.name} (${d.id})</h3><div class="tt-pb" style="color:var(--text-muted)">No Tesla pricing (API returns HTTP 500)</div>`;
+        ttEl.innerHTML = `<h3>${d.properties.name} (${d.id})</h3><div class="tt-pb" style="color:var(--text-muted)">No pricing</div>`;
         ttEl.classList.add('show'); moveTT(ev);
         return;
       }
