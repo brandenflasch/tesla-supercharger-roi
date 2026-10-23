@@ -105,7 +105,7 @@ The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it 
 - **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — pricing still 500. Each now has an info page with no configurator, like `AE` and `TR`.
 
 ### Canada (new 2026-10-22, CAD)
-Per-province, like the US. The page shows Ontario (largest market), the same way the US row uses California. NT, NU and YT return 500.
+Per-province, like the US. The **🇨🇦 Canada** view is a province-by-province ROI tool (map, rankings, 15-year projection, table) built the same way as the 50-state view, in CAD by default. The international comparison shows Canada as its 10-province average, the same way the US row uses the 50-state + DC average. NT, NU and YT return 500 and render grey. Province outlines: Natural Earth 1:50m admin-1 (public domain), simplified with mapshaper and inlined.
 
 Shared by every province: Tesla fee 0.14/kWh (PPU) and 0.085 (non-PPU), cabinet 78,000, other hardware 4,200, services 4,200, shipping 2,500, install 65,000 / 78,000 / 90,000.
 

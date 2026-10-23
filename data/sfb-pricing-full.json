@@ -81,7 +81,7 @@
     "changes_since_2026_10_01": [
       "US: no change. All 51 jurisdictions identical.",
       "Intl: all 31 earlier non-US markets identical (13 fields each).",
-      "CA: NEW market, publicly launched, per-province pricing in CAD. Shared: fee 0.14 PPU / 0.085 non-PPU, cabinet 78,000, other hardware 4,200, services 4,200, shipping 2,500, install 65,000/78,000/90,000. Sell price 0.908 (SK 0.902). Energy ranges from QC 0.044 to SK 0.574 CAD/kWh. The page shows Ontario.",
+      "CA: NEW market, publicly launched, per-province pricing in CAD. Shared: fee 0.14 PPU / 0.085 non-PPU, cabinet 78,000, other hardware 4,200, services 4,200, shipping 2,500, install 65,000/78,000/90,000. Sell price 0.908 (SK 0.902). Energy ranges from QC 0.044 to SK 0.574 CAD/kWh. The page has a province view; the comparison table uses the 10-province average.",
       "Raw archive: sfb-sweep-2026-10-22.json."
     ]
   },
