@@ -1,270 +1,251 @@
-# Tesla Supercharger-for-Business ROI assumptions vs. our measured occupancy
+# Tesla SfB ROI assumptions vs. measured occupancy — November refresh
 
 State-by-state and country-by-country cross-check of Tesla's published `scAvgUtilization`
-against `dcfc-analytics` live occupancy data.
+against `dcfc-analytics` live occupancy. This run replaces the August 2026 run.
 
 | | |
 |---|---|
-| Our data | `live_snapshot.json`, built 2026-08-03T03:25:56Z (sweep 2026-08-03T03:25:24Z) |
-| Tesla data | `/api/energy/supercharger/pricing`, harvest 2026-08-01 |
-| Population | 5245 Tesla site rows; 38940 US stalls in 51 jurisdictions |
+| Our data | `live_snapshot.json`, built 2026-11-03T04:23:01Z (sweep 2026-11-03T04:22:09Z) |
+| Tesla data | `/api/energy/supercharger/pricing`, re-harvested 2026-11-03 |
+| Population | 5,479 Tesla site rows; 38,517 US stalls in 51 jurisdictions; 23,121 international stalls in 31 priced markets |
 
 ---
 
-## 1. The two datasets do not share a unit
+## 0. What changed since August — read this first
 
-Tesla publishes **`scAvgUtilization` in kWh per stall per day**. The ROI tool consumes it
-that way (`index.html`: `kwhPerPostYr = s.u * 365`).
+**1. Tesla's numbers did not move at all.** A full 248-code ISO sweep plus all 51 US
+jurisdictions returned byte-identical values to the 2026-08-01 harvest, across all 13
+pricing fields. Same 31 international markets, same 51 states. Nothing drifted.
 
-We do not measure energy for Tesla. We measure **occupancy** — `au["168"]`, the fraction of
-stall-time that is plugged, averaged over 7 days, from the `teslapx` per-stall overlay
-(`au_src` = `px`).
+**2. Our occupancy fell almost everywhere.** US fleet `au168` went 0.227 → 0.195, a 14%
+drop. Rural and cold states fell hardest: MT −61%, WY −51%, SD −45%, ME −42%. Tourist
+markets abroad fell further: HR −71%, SI −47%, NO −46%, IT −44%, SE −42%, PT −36%.
 
-One quantity bridges them:
+**3. That reverses the August international conclusion.** The August run read
+R-squared 0.38 internationally and called the non-US values "modeled or policy numbers".
+Most of that failure was **summer tourism**, not bad data. The same test now reads
+**R-squared 0.81–0.84**. The international fit is close to the US fit.
+
+**4. AE and LT now have matched sites.** In August we had zero Supercharger sites in either.
+We now have AE 28 sites / 219 stalls and LT 1 site / 8 stalls. The "cannot be checked"
+caveat is retired for AE.
+
+**5. `au["720"]` is not a 30-day window.** It is an exact copy of `au["168"]` on all 5,225
+rows that carry both. Do not use it. `au["1440"]` is genuine (60 days, Sep 4 – Nov 3) and
+this run uses it as the primary window.
+
+---
+
+## 1. The bridge
+
+Tesla publishes **`scAvgUtilization` in kWh per stall per day**. We measure **occupancy** —
+the fraction of stall-time that is plugged, from the `teslapx` per-stall overlay
+(`au_src` = `px`, 5,460 of 5,479 Tesla rows).
 
 ```
-kWh/stall/day  =  au168 x 24 h x P
+kWh/stall/day  =  occupancy x 24 h x P
 ```
 
-`P` is the mean power while a car is plugged. `P` is not a free parameter. Physics bounds it:
-a 250 kW V3 fleet with a real charge curve and idle-plugged tails must land near 40-70 kW.
-So we invert Tesla's number, and we ask whether the implied `P` is credible.
+`P` is the mean power while a car is plugged. We invert Tesla's number and ask whether the
+implied `P` is credible for a 250 kW fleet with a real charge curve and idle-plugged tails.
 
 ---
 
-## 2. Anchor: the Tesla Diner
+## 2. The seasonality problem — and why one week is not enough
 
-The Diner (`tesla:26139`) is the one site where Tesla published a hard energy figure.
-It calibrates the bridge independently of the regression.
+Tesla's figure is an **annual average**. Our `au168` is **one week**. The August run sampled
+a summer-peak week; this run samples a November week. The implied `P` moves with the season
+even though Tesla's number is fixed:
 
-| Quantity | Value |
-|---|---|
-| Stalls / rated power | 80 / 325 kW |
-| Our `au168` | 0.573 |
-| Tesla published throughput | 726 kWh/stall/day |
-| **Implied P** | **52.8 kW** |
-
-Tesla's own fleet figures give the same answer by a different route: 36.3 kWh/session over a
-40-minute plugged time is 54 kW. Two independent paths agree. The bridge holds.
-
----
-
-## 3. US result — the datasets agree
-
-Stall-weighted per state. Fit over the 49 jurisdictions with 50 or more stalls.
-
-| Statistic | Value |
-|---|---|
-| Pearson r | 0.850 |
-| **R-squared** | **0.723** |
-| Spearman rho | 0.886 |
-| OLS fit | `TeslakWh = 1377 x occ168 + 1.3` |
-| **Slope / 24 = implied P** | **57.4 kW** |
-| Fleet aggregate (38,940 stalls) | occ 0.227, Tesla 336.9 -> **62.0 kW** |
-
-**The intercept is the result.** 1.3 kWh on a mean of 337 is zero. Energy must be strictly
-proportional to occupied time, so a correct pair of datasets *must* produce a zero intercept.
-This one does, and the slope lands at 57.4 kW — inside the Diner's 52.8 kW and the fleet's 54 kW.
-
-**Read: Tesla's US per-state ROI assumptions are consistent with independently measured
-occupancy. They are not inflated.**
-
-### 3.1 State-by-state
-
-- `occ168` — our measured occupancy, stall-weighted, 7-day mean.
-- `Tesla kWh` — Tesla's published `scAvgUtilization`.
-- `implied P` — Tesla kWh / (occ168 x 24). Compare to the 57.4 kW model.
-- `residual` — Tesla's figure against the 57.4 kW model. Positive means Tesla assumes more
-  energy than our occupancy supports.
-
-| State | Sites | Stalls | occ168 | Rated kW | Tesla kWh/stall/day | Implied P (kW) | Residual | Flag |
-|---|---:|---:|---:|---:|---:|---:|---:|---|
-| District of Columbia (DC) | 4 | 36 | 0.307 | 210 | 534.1 | 72.4 | +26% | low sample |
-| Florida (FL) | 246 | 2910 | 0.259 | 262 | 453.4 | 73.0 | +27% |  |
-| California (CA) | 664 | 11143 | 0.297 | 250 | 449.6 | 63.1 | +10% |  |
-| New Jersey (NJ) | 107 | 1284 | 0.201 | 264 | 433.7 | 89.7 | +56% | Tesla high |
-| Hawaii (HI) | 5 | 50 | 0.398 | 298 | 412.1 | 43.2 | -25% |  |
-| Maryland (MD) | 75 | 728 | 0.236 | 245 | 376.3 | 66.5 | +16% |  |
-| Georgia (GA) | 86 | 1129 | 0.246 | 268 | 344.2 | 58.4 | +2% |  |
-| Arizona (AZ) | 65 | 998 | 0.244 | 240 | 319.5 | 54.6 | -5% |  |
-| New York (NY) | 126 | 1361 | 0.232 | 240 | 318.8 | 57.4 | +0% |  |
-| Virginia (VA) | 107 | 1003 | 0.207 | 251 | 313.9 | 63.1 | +10% |  |
-| Utah (UT) | 46 | 484 | 0.181 | 264 | 302.8 | 69.6 | +21% |  |
-| Texas (TX) | 229 | 2958 | 0.236 | 261 | 302.3 | 53.4 | -7% |  |
-| Washington (WA) | 89 | 1028 | 0.209 | 255 | 297.9 | 59.3 | +3% |  |
-| Rhode Island (RI) | 7 | 60 | 0.181 | 252 | 289.9 | 66.6 | +16% |  |
-| Illinois (IL) | 78 | 946 | 0.201 | 243 | 282.7 | 58.7 | +2% |  |
-| Arkansas (AR) | 11 | 117 | 0.173 | 283 | 276.4 | 66.7 | +16% |  |
-| Nevada (NV) | 65 | 970 | 0.237 | 269 | 273.4 | 48.0 | -16% |  |
-| Connecticut (CT) | 41 | 428 | 0.168 | 236 | 268.8 | 66.8 | +16% |  |
-| Massachusetts (MA) | 63 | 678 | 0.181 | 237 | 262.4 | 60.4 | +5% |  |
-| South Carolina (SC) | 46 | 588 | 0.136 | 271 | 262.4 | 80.2 | +40% | Tesla high |
-| Oklahoma (OK) | 33 | 266 | 0.138 | 285 | 259.1 | 78.3 | +37% | Tesla high |
-| Kentucky (KY) | 20 | 226 | 0.173 | 270 | 252.4 | 60.7 | +6% |  |
-| Ohio (OH) | 59 | 585 | 0.169 | 237 | 242.2 | 59.8 | +4% |  |
-| Missouri (MO) | 36 | 355 | 0.173 | 246 | 241.7 | 58.1 | +1% |  |
-| Colorado (CO) | 64 | 646 | 0.172 | 259 | 237.6 | 57.6 | +0% |  |
-| Pennsylvania (PA) | 111 | 1093 | 0.148 | 257 | 232.9 | 65.7 | +14% |  |
-| Oregon (OR) | 60 | 644 | 0.165 | 249 | 229.9 | 57.9 | +1% |  |
-| Louisiana (LA) | 21 | 231 | 0.183 | 244 | 228.7 | 52.1 | -9% |  |
-| North Carolina (NC) | 91 | 1114 | 0.160 | 259 | 227.7 | 59.4 | +3% |  |
-| Tennessee (TN) | 43 | 600 | 0.165 | 277 | 225.3 | 57.1 | -1% |  |
-| Michigan (MI) | 41 | 398 | 0.181 | 218 | 218.4 | 50.2 | -13% |  |
-| Minnesota (MN) | 38 | 340 | 0.154 | 243 | 215.3 | 58.4 | +2% |  |
-| New Mexico (NM) | 23 | 220 | 0.138 | 261 | 212.3 | 64.0 | +12% |  |
-| Mississippi (MS) | 14 | 152 | 0.152 | 251 | 210.2 | 57.5 | +0% |  |
-| Delaware (DE) | 19 | 176 | 0.151 | 240 | 195.9 | 54.1 | -6% |  |
-| Wisconsin (WI) | 39 | 347 | 0.150 | 234 | 194.8 | 54.1 | -6% |  |
-| Indiana (IN) | 50 | 540 | 0.144 | 245 | 194.1 | 56.0 | -2% |  |
-| Kansas (KS) | 20 | 188 | 0.135 | 243 | 185.6 | 57.4 | +0% |  |
-| Idaho (ID) | 16 | 134 | 0.155 | 260 | 184.2 | 49.6 | -14% |  |
-| Iowa (IA) | 20 | 178 | 0.141 | 237 | 180.4 | 53.2 | -7% |  |
-| Nebraska (NE) | 11 | 92 | 0.162 | 207 | 156.1 | 40.1 | -30% |  |
-| West Virginia (WV) | 18 | 142 | 0.126 | 215 | 156.1 | 51.7 | -10% |  |
-| Vermont (VT) | 8 | 78 | 0.098 | 229 | 151.9 | 64.9 | +13% |  |
-| New Hampshire (NH) | 20 | 190 | 0.107 | 244 | 144.6 | 56.5 | -2% |  |
-| Alabama (AL) | 38 | 481 | 0.127 | 276 | 143.5 | 47.0 | -18% |  |
-| Wyoming (WY) | 13 | 88 | 0.150 | 188 | 131.0 | 36.5 | -36% | Tesla low |
-| South Dakota (SD) | 10 | 68 | 0.100 | 167 | 87.5 | 36.3 | -37% | Tesla low |
-| Maine (ME) | 24 | 208 | 0.091 | 220 | 82.0 | 37.4 | -35% | Tesla low |
-| Montana (MT) | 20 | 152 | 0.125 | 220 | 81.5 | 27.2 | -53% | Tesla low |
-| North Dakota (ND) | 7 | 60 | 0.085 | 275 | 78.2 | 38.2 | -33% |  |
-| Alaska (AK) | 7 | 49 | 0.024 | 310 | 48.8 | 86.2 | +50% | low sample |
-
-### 3.2 Where the two disagree
-
-Only 7 of the 49 fitted jurisdictions sit more than 34% off the model. Both tails have an
-explanation.
-
-**Tesla assumes more than our occupancy supports** (implied P above ~78 kW is hard to reach on
-a 250 kW fleet once idle-plugged time is counted):
-
-| State | occ168 | Tesla kWh | Implied P (kW) | Residual |
-|---|---:|---:|---:|---:|
-| New Jersey (NJ) | 0.201 | 433.7 | 89.7 | +56% |
-| South Carolina (SC) | 0.136 | 262.4 | 80.2 | +40% |
-| Oklahoma (OK) | 0.138 | 259.1 | 78.3 | +37% |
-
-**Tesla is conservative against our occupancy:**
-
-| State | occ168 | Tesla kWh | Implied P (kW) | Residual |
-|---|---:|---:|---:|---:|
-| Montana (MT) | 0.125 | 81.5 | 27.2 | -53% |
-| South Dakota (SD) | 0.100 | 87.5 | 36.3 | -37% |
-| Wyoming (WY) | 0.150 | 131.0 | 36.5 | -36% |
-| Maine (ME) | 0.091 | 82.0 | 37.4 | -35% |
-
-The conservative tail is rural and low-traffic. At those sites a plugged stall is more often a
-car that finished charging and stayed, so our occupancy overstates energy and the implied P
-falls. That is a property of our metric, not an error in Tesla's.
-
-Hawaii is the exception worth naming. It carries the **highest occupancy in the US at 0.398**,
-yet implies only 43.2 kW. Hawaii is dwell-heavy, not energy-heavy: short island trips, long
-plugged times, small charge sessions. A site-selection model driven by occupancy alone would
-rank Hawaii first and be wrong about the revenue.
-
----
-
-## 4. International result — the fit breaks
-
-Country parsed from the Tesla site-name suffix. A snapshot site row carries no country field.
-Fit over the 26 markets with 40 or more stalls.
-
-| Statistic | US | International |
+| Window | US implied P | International implied P |
 |---|---:|---:|
-| R-squared | 0.723 | **0.382** |
-| Pearson r | 0.850 | 0.618 |
-| Slope / 24 (kW) | 57.4 | 35.4 |
-| **Intercept (kWh/stall/day)** | **1.3** | **75.4** |
+| Aug 3, 7-day (summer peak) | 57.4 kW | 35.4 kW |
+| Nov 3, 7-day (low season) | 75.4 kW | 48.0 kW |
+| **Nov 3, 60-day (Sep 4 – Nov 3)** | **70.8 kW** | **50.6 kW** |
 
-A 75 kWh intercept is not a measurement. It says that a market with zero occupancy would
-still deliver 75 kWh per stall per day. Rated power is 200-250 kW in every one of these
-countries, so hardware cannot produce the spread either.
+Both regions scale by about the same factor from August to November (US ×1.31,
+international ×1.36). That is the signature of a seasonal shift in the denominator, not a
+change in Tesla's data. The 7-day and 60-day columns cover the **same 38,517 US and 23,010
+international stalls**, so the difference between them is the window, not the site mix.
 
-**Read: the non-US `scAvgUtilization` values are modeled or policy numbers. They are not
-measured local throughput.** The US values behave like measurements. The international ones
-do not.
+**Read: a single-week occupancy window cannot calibrate the absolute kW. Use the 60-day
+window, and treat any implied-P figure as the season it was measured in.**
 
-### 4.1 Country-by-country
+### The Tesla Diner anchor moved too
 
-| Country | Sites | Stalls | occ168 | Rated kW | Tesla kWh/stall/day | Implied P (kW) | Flag |
-|---|---:|---:|---:|---:|---:|---:|---|
-| Portugal (PT) | 9 | 196 | 0.383 | 242 | 451.0 | 49.0 |  |
-| Poland (PL) | 23 | 235 | 0.223 | 239 | 413.2 | 77.1 | implausible P |
-| Czechia (CZ) | 12 | 120 | 0.306 | 240 | 401.1 | 54.6 |  |
-| United Arab Emirates (AE) | 0 | 0 | — | — | 400.8 | — | no matched sites |
-| Belgium (BE) | 27 | 408 | 0.230 | 236 | 397.0 | 72.0 |  |
-| Hungary (HU) | 13 | 142 | 0.325 | 232 | 386.7 | 49.6 |  |
-| Lithuania (LT) | 0 | 0 | — | — | 385.9 | — | no matched sites |
-| Türkiye (TR) | 33 | 310 | 0.303 | 250 | 375.8 | 51.8 |  |
-| United Kingdom (GB) | 217 | 2370 | 0.239 | 234 | 337.1 | 58.8 |  |
-| Latvia (LV) | 2 | 8 | 0.360 | 200 | 321.0 | 37.2 | low sample |
-| Netherlands (NL) | 54 | 928 | 0.173 | 223 | 313.9 | 75.8 | implausible P |
-| Slovakia (SK) | 6 | 46 | 0.241 | 215 | 289.1 | 49.9 |  |
-| Luxembourg (LU) | 1 | 16 | 0.365 | 250 | 273.6 | 31.2 | low sample |
-| Romania (RO) | 15 | 138 | 0.208 | 250 | 263.8 | 52.9 |  |
-| Switzerland (CH) | 38 | 464 | 0.214 | 201 | 259.3 | 50.5 |  |
-| France (FR) | 272 | 4075 | 0.223 | 242 | 259.1 | 48.5 |  |
-| Israel (IL) | 24 | 210 | 0.242 | 250 | 242.8 | 41.8 |  |
-| Ireland (IE) | 9 | 60 | 0.183 | 190 | 237.9 | 54.2 |  |
-| Germany (DE) | 317 | 3883 | 0.171 | 250 | 234.2 | 57.2 |  |
-| Denmark (DK) | 39 | 766 | 0.167 | 240 | 228.6 | 57.0 |  |
-| Slovenia (SI) | 8 | 78 | 0.308 | 231 | 223.9 | 30.3 | implausible P |
-| Austria (AT) | 52 | 600 | 0.174 | 227 | 220.0 | 52.7 |  |
-| Sweden (SE) | 86 | 1374 | 0.211 | 244 | 213.9 | 42.2 |  |
-| Spain (ES) | 101 | 1150 | 0.227 | 247 | 207.1 | 38.0 |  |
-| Italy (IT) | 102 | 1232 | 0.216 | 242 | 203.8 | 39.3 |  |
-| Greece (GR) | 7 | 44 | 0.219 | 236 | 189.6 | 36.1 |  |
-| Croatia (HR) | 13 | 104 | 0.314 | 209 | 184.1 | 24.4 | implausible P |
-| Norway (NO) | 167 | 2661 | 0.187 | 235 | 169.5 | 37.9 |  |
-| Iceland (IS) | 16 | 157 | 0.106 | 250 | 163.2 | 64.0 |  |
-| Liechtenstein (LI) | 1 | 10 | 0.113 | 125 | 152.4 | 56.2 | low sample |
-| Finland (FI) | 47 | 410 | 0.125 | 240 | 127.8 | 42.7 |  |
+| Run | Diner occupancy | Tesla published | Implied P |
+|---|---:|---:|---:|
+| Aug 3 (`au168`) | 0.573 | 726 kWh/stall/day | 52.8 kW |
+| Nov 3 (`au168`) | 0.514 | 726 kWh/stall/day | 58.8 kW |
+| Nov 3 (`au1440`, 60 d) | 0.515 | 726 kWh/stall/day | 58.7 kW |
 
-Implied P across the 26 fitted markets runs 24.4 to 77.1 kW — a 3.2x spread on near-identical
-hardware. The US spread over 49 jurisdictions is far tighter and centres on the fleet value.
+Tesla's own fleet figure — 36.3 kWh/session over a 40-minute plugged time — is 54 kW.
+The Diner now reads 58.7 kW. Both sit inside the plausible 45–70 kW band.
 
-**Over-assumed** (implied P above 70 kW): PL 77 kW, NL 76 kW, BE 72 kW
+---
 
-**Under-assumed** (implied P below 38 kW): HR 24 kW, SI 30 kW, GR 36 kW, NO 38 kW, ES 38 kW
+## 3. Results
+
+| Statistic | US Aug 3 | US Nov 3 (60 d) | Intl Aug 3 | Intl Nov 3 (60 d) |
+|---|---:|---:|---:|---:|
+| Jurisdictions fitted | 49 | 50 | 26 | 27 |
+| Pearson r | 0.850 | 0.924 | 0.618 | 0.896 |
+| **R-squared** | 0.723 | **0.864** | 0.382 | **0.812** |
+| Spearman rho | 0.886 | 0.918 | — | 0.886 |
+| Slope / 24 = implied P | 57.4 kW | 70.8 kW | 35.4 kW | 50.6 kW |
+| **Intercept (kWh/stall/day)** | **+1.3** | **-36.0** | **+75.4** | **+60.4** |
+| Intercept as % of mean | +0.4% | -11% | +30% | +24% |
+| Fleet aggregate implied P | 62.0 kW | 64.0 kW | — | 66.5 kW |
+
+**The US relationship is strong and linear in both runs.** R-squared rose from 0.72 to
+0.86. The intercept is -36.0 kWh on a mean of
+336, or -11% of the mean — still small,
+but no longer the near-exact zero the August run produced.
+
+**The international relationship is now almost as strong.** R-squared
+0.81 against the US 0.86. The implied-P spread across
+fitted markets narrowed from 3.2x in August to 2.0x now.
+
+**What survives from August:** the international intercept is still positive and still
+larger than the US one — +60 kWh (+24% of
+the mean) against -36 (-11%). A positive
+intercept is not physical. So the international input is still the weaker of the two — but
+the evidence is **much weaker than the August run claimed**, and the "modeled or policy
+number" reading is no longer supported.
+
+### 3.1 US — all 51 jurisdictions
+
+Fit over the 50 jurisdictions with 50 or more stalls. Residual is against the
+70.8 kW 60-day model.
+
+| Market | Sites | Stalls | occ 7d | occ 60d | Tesla kWh/stall/day | Implied P 7d (kW) | Implied P 60d (kW) | Residual 60d | Flag |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| District of Columbia (DC) | 4 | 36 | 0.305 | 0.332 | 534.1 | 73.0 | 67.0 | +1% | low sample |
+| Florida (FL) | 247 | 2925 | 0.230 | 0.253 | 453.4 | 82.1 | 74.6 | +15% |  |
+| California (CA) | 655 | 10890 | 0.254 | 0.288 | 449.6 | 73.6 | 64.9 | -1% |  |
+| New Jersey (NJ) | 103 | 1224 | 0.177 | 0.190 | 433.7 | 102.3 | 95.2 | +51% | Tesla high |
+| Hawaii (HI) | 6 | 62 | 0.300 | 0.314 | 412.1 | 57.2 | 54.6 | -17% |  |
+| Maryland (MD) | 72 | 714 | 0.226 | 0.233 | 376.3 | 69.4 | 67.3 | +4% |  |
+| Georgia (GA) | 86 | 1147 | 0.219 | 0.234 | 344.2 | 65.4 | 61.2 | -5% |  |
+| Arizona (AZ) | 65 | 994 | 0.170 | 0.213 | 319.5 | 78.4 | 62.6 | -2% |  |
+| New York (NY) | 110 | 1185 | 0.207 | 0.214 | 318.8 | 64.1 | 62.0 | -3% |  |
+| Virginia (VA) | 106 | 1003 | 0.191 | 0.209 | 313.9 | 68.5 | 62.6 | -2% |  |
+| Utah (UT) | 47 | 511 | 0.158 | 0.182 | 302.8 | 80.0 | 69.4 | +11% |  |
+| Texas (TX) | 238 | 3048 | 0.201 | 0.221 | 302.3 | 62.8 | 56.9 | -11% |  |
+| Washington (WA) | 91 | 1039 | 0.207 | 0.211 | 297.9 | 59.9 | 58.9 | -8% |  |
+| Rhode Island (RI) | 7 | 60 | 0.157 | 0.169 | 289.9 | 76.9 | 71.6 | +16% |  |
+| Illinois (IL) | 76 | 944 | 0.181 | 0.199 | 282.7 | 65.1 | 59.2 | -6% |  |
+| Arkansas (AR) | 11 | 117 | 0.140 | 0.172 | 276.4 | 82.1 | 66.8 | +8% |  |
+| Nevada (NV) | 65 | 973 | 0.165 | 0.196 | 273.4 | 69.0 | 58.1 | -8% |  |
+| Connecticut (CT) | 39 | 412 | 0.166 | 0.172 | 268.8 | 67.6 | 65.2 | +5% |  |
+| Massachusetts (MA) | 59 | 634 | 0.183 | 0.194 | 262.4 | 59.6 | 56.3 | -11% |  |
+| South Carolina (SC) | 45 | 584 | 0.117 | 0.143 | 262.4 | 93.8 | 76.6 | +27% | Tesla high |
+| Oklahoma (OK) | 38 | 286 | 0.099 | 0.119 | 259.1 | 108.7 | 90.3 | +55% | Tesla high |
+| Kentucky (KY) | 19 | 218 | 0.156 | 0.182 | 252.4 | 67.4 | 57.6 | -8% |  |
+| Ohio (OH) | 58 | 573 | 0.152 | 0.176 | 242.2 | 66.2 | 57.3 | -8% |  |
+| Missouri (MO) | 37 | 363 | 0.146 | 0.170 | 241.7 | 69.1 | 59.3 | -4% |  |
+| Colorado (CO) | 63 | 639 | 0.145 | 0.169 | 237.6 | 68.1 | 58.6 | -5% |  |
+| Pennsylvania (PA) | 108 | 1056 | 0.137 | 0.152 | 232.9 | 71.1 | 63.7 | +4% |  |
+| Oregon (OR) | 62 | 668 | 0.140 | 0.150 | 229.9 | 68.5 | 63.8 | +5% |  |
+| Louisiana (LA) | 22 | 239 | 0.146 | 0.178 | 228.7 | 65.4 | 53.4 | -15% |  |
+| North Carolina (NC) | 90 | 1086 | 0.150 | 0.171 | 227.7 | 63.1 | 55.5 | -11% |  |
+| Tennessee (TN) | 45 | 612 | 0.145 | 0.174 | 225.3 | 64.9 | 54.0 | -13% |  |
+| Michigan (MI) | 39 | 382 | 0.142 | 0.172 | 218.4 | 64.2 | 52.8 | -15% |  |
+| Minnesota (MN) | 38 | 342 | 0.133 | 0.151 | 215.3 | 67.3 | 59.4 | -2% |  |
+| New Mexico (NM) | 23 | 220 | 0.105 | 0.137 | 212.3 | 84.1 | 64.5 | +8% |  |
+| Mississippi (MS) | 14 | 160 | 0.116 | 0.137 | 210.2 | 75.8 | 63.9 | +7% |  |
+| Delaware (DE) | 18 | 164 | 0.131 | 0.152 | 195.9 | 62.2 | 53.7 | -12% |  |
+| Wisconsin (WI) | 39 | 353 | 0.118 | 0.143 | 194.8 | 68.8 | 56.7 | -6% |  |
+| Indiana (IN) | 51 | 543 | 0.118 | 0.146 | 194.1 | 68.7 | 55.4 | -9% |  |
+| Kansas (KS) | 19 | 184 | 0.116 | 0.142 | 185.6 | 66.7 | 54.4 | -10% |  |
+| Idaho (ID) | 18 | 150 | 0.108 | 0.131 | 184.2 | 71.0 | 58.5 | -2% |  |
+| Iowa (IA) | 20 | 178 | 0.114 | 0.138 | 180.4 | 65.7 | 54.5 | -9% |  |
+| Nebraska (NE) | 11 | 92 | 0.101 | 0.126 | 156.1 | 64.2 | 51.8 | -12% |  |
+| West Virginia (WV) | 18 | 142 | 0.100 | 0.123 | 156.1 | 65.3 | 52.7 | -10% |  |
+| Vermont (VT) | 8 | 78 | 0.072 | 0.116 | 151.9 | 87.4 | 54.6 | -6% |  |
+| New Hampshire (NH) | 19 | 180 | 0.090 | 0.113 | 144.6 | 67.2 | 53.2 | -8% |  |
+| Alabama (AL) | 36 | 457 | 0.105 | 0.130 | 143.5 | 57.2 | 46.1 | -22% |  |
+| Wyoming (WY) | 15 | 104 | 0.073 | 0.102 | 131.0 | 74.3 | 53.6 | -4% |  |
+| South Dakota (SD) | 10 | 68 | 0.056 | 0.081 | 87.5 | 65.7 | 45.0 | -14% |  |
+| Maine (ME) | 24 | 208 | 0.053 | 0.076 | 82.0 | 64.7 | 45.2 | -11% |  |
+| Montana (MT) | 21 | 160 | 0.049 | 0.079 | 81.5 | 69.9 | 42.8 | -18% |  |
+| North Dakota (ND) | 7 | 60 | 0.058 | 0.073 | 78.2 | 56.3 | 44.3 | -12% |  |
+| Alaska (AK) | 7 | 50 | 0.031 | 0.036 | 48.8 | 65.2 | 55.9 | +89% | Tesla high |
+
+### 3.2 International — 31 priced markets
+
+Fit over the 27 markets with 40 or more stalls.
+
+| Market | Sites | Stalls | occ 7d | occ 60d | Tesla kWh/stall/day | Implied P 7d (kW) | Implied P 60d (kW) | Residual 60d | Flag |
+|---|---:|---:|---:|---:|---:|---:|---:|---:|---|
+| Portugal (PT) | 9 | 204 | 0.243 | 0.285 | 451.0 | 77.2 | 66.0 | +11% |  |
+| Poland (PL) | 27 | 287 | 0.196 | 0.187 | 413.2 | 87.9 | 92.2 | +44% | Tesla high |
+| Czechia (CZ) | 12 | 120 | 0.317 | 0.283 | 401.1 | 52.8 | 59.1 | -1% |  |
+| United Arab Emirates (AE) | 27 | 215 | 0.274 | 0.311 | 400.8 | 60.9 | 53.7 | -8% |  |
+| Belgium (BE) | 27 | 416 | 0.256 | 0.244 | 397.0 | 64.7 | 67.7 | +11% |  |
+| Hungary (HU) | 14 | 158 | 0.262 | 0.239 | 386.7 | 61.5 | 67.4 | +10% |  |
+| Lithuania (LT) | 1 | 8 | 0.142 | 0.101 | 385.9 | 113.2 | 159.2 | +111% | low sample |
+| Türkiye (TR) | 35 | 338 | 0.216 | 0.233 | 375.8 | 72.5 | 67.3 | +10% |  |
+| United Kingdom (GB) | 227 | 2448 | 0.258 | 0.245 | 337.1 | 54.5 | 57.2 | -6% |  |
+| Latvia (LV) | 2 | 8 | 0.416 | 0.398 | 321.0 | 32.1 | 33.6 | -41% | low sample |
+| Netherlands (NL) | 54 | 940 | 0.223 | 0.203 | 313.9 | 58.7 | 64.3 | +2% |  |
+| Slovakia (SK) | 6 | 46 | 0.281 | 0.228 | 289.1 | 42.9 | 52.7 | -14% |  |
+| Luxembourg (LU) | 1 | 16 | 0.327 | 0.333 | 273.6 | 34.9 | 34.2 | -41% | low sample |
+| Romania (RO) | 16 | 146 | 0.177 | 0.167 | 263.8 | 62.0 | 66.0 | +0% |  |
+| Switzerland (CH) | 39 | 472 | 0.197 | 0.187 | 259.3 | 54.9 | 57.8 | -10% |  |
+| France (FR) | 279 | 4140 | 0.155 | 0.142 | 259.1 | 69.4 | 76.2 | +12% |  |
+| Israel (IL) | 25 | 226 | 0.188 | 0.201 | 242.8 | 53.8 | 50.4 | -20% |  |
+| Ireland (IE) | 14 | 104 | 0.131 | 0.126 | 237.9 | 75.4 | 78.7 | +12% |  |
+| Germany (DE) | 326 | 3955 | 0.141 | 0.136 | 234.2 | 69.1 | 71.7 | +4% |  |
+| Denmark (DK) | 40 | 780 | 0.130 | 0.131 | 228.6 | 73.2 | 73.0 | +4% |  |
+| Slovenia (SI) | 8 | 78 | 0.164 | 0.171 | 223.9 | 56.9 | 54.6 | -16% |  |
+| Austria (AT) | 54 | 606 | 0.150 | 0.141 | 220.0 | 61.2 | 65.2 | -5% |  |
+| Sweden (SE) | 92 | 1432 | 0.124 | 0.114 | 213.9 | 72.1 | 78.4 | +8% |  |
+| Spain (ES) | 104 | 1160 | 0.150 | 0.151 | 207.1 | 57.6 | 57.0 | -15% |  |
+| Italy (IT) | 106 | 1250 | 0.122 | 0.129 | 203.8 | 69.6 | 65.7 | -6% |  |
+| Greece (GR) | 8 | 44 | 0.144 | 0.147 | 189.6 | 55.0 | 53.6 | -21% |  |
+| Croatia (HR) | 17 | 132 | 0.090 | 0.109 | 184.1 | 84.8 | 70.2 | -5% |  |
+| Norway (NO) | 171 | 2688 | 0.102 | 0.114 | 169.5 | 69.5 | 62.0 | -15% |  |
+| Iceland (IS) | 17 | 161 | 0.066 | 0.076 | 163.2 | 103.3 | 89.8 | +7% |  |
+| Liechtenstein (LI) | 1 | 10 | 0.121 | 0.109 | 152.4 | 52.5 | 58.3 | -21% | low sample |
+| Finland (FI) | 48 | 422 | 0.090 | 0.100 | 127.8 | 59.0 | 53.3 | -30% | Tesla low |
+
+---
+
+## 4. Markets we now see but Tesla does not price
+
+Our snapshot carries matched Supercharger sites in seven markets with no SfB pricing record:
+Mexico (184 stalls), Saudi Arabia (48), Estonia (23), Bulgaria (18), Jordan (14),
+Qatar (12), Serbia (12). Canada is priced, but only with a province code —
+`countryCode=CA` alone returns HTTP 400.
 
 ---
 
 ## 5. What this changes in the ROI tool
 
-The tool ranks markets by payback, and payback is linear in `scAvgUtilization`. The two halves
-of the ranking now carry different confidence:
-
 | Ranking | Confidence | Basis |
 |---|---|---|
-| US state ranking | High | Independently reproduced at R-squared 0.72 with a zero intercept |
-| International ranking | Low | R-squared 0.38, 75 kWh intercept, implied P from 24 to 77 kW |
+| US state ranking | High | R-squared 0.86, intercept -11% of the mean |
+| International ranking | Moderate | R-squared 0.81, intercept +24% of the mean |
 
-The tool's assumptions block already warns that payback is idealised. It does not yet warn that
-the international utilization input is weaker than the US one. That is worth adding.
+The August note shipped into the tool said the international input fails at R-squared 0.38
+with a 24–77 kW spread. **That note overstated the case and has been corrected.**
 
 ---
 
 ## 6. Caveats
 
-These apply to every number above. Carry them with the result.
-
-1. **`au` counts plugged time, not charging time.** A car that finished and stayed still reads
-   as occupied. Every implied P in this document is therefore a **lower bound** on true
-   charging power.
-2. **Our window is one summer week** (`au["168"]`, 2026-08-03). Tesla's figure is an annual average.
-   Summer travel raises our occupancy against an annual mean.
-3. **The populations are not identical.** We poll public Superchargers. Supercharger-for-
-   Business sites are host-owned on the same network and the same pricing. Same fleet, same
-   hardware, different ownership.
-4. **Sessions are excluded on purpose.** All 5,245 Tesla rows carry `s7 = 0`, and our Tesla
-   session counts read about one third low at high-turnover sites. Occupancy is a robust
-   time-average and is not sampling-biased. This analysis uses occupancy only.
-5. **Alaska (49 stalls) and DC (36 stalls) are below the 50-stall fit cutoff.** They appear in
-   the state table and are flagged, but they do not enter the regression.
-6. **Tesla ships order-of-magnitude data errors** in this endpoint — Maine energy cost, Norway
-   cabinet cost and Poland energy cost were each wrong by 2x to 10x and later corrected. Treat
-   any single market's figure as provisional until reverified.
+1. **Occupancy counts plugged time, not charging time.** Every implied P here is a
+   **lower bound** on true charging power.
+2. **Even 60 days is not a year.** The window is Sep 4 – Nov 3. Tesla's figure is annual.
+   Compare implied-P levels only against other runs of the same window length.
+3. **`au["720"]` is a duplicate of `au["168"]`.** Fixed-window analysis must use `au["1440"]`
+   or `au["168"]`, never `au["720"]`.
+4. **The populations are not identical.** We poll public Superchargers; SfB sites are
+   host-owned on the same network and pricing.
+5. **Sessions are excluded on purpose.** This analysis uses occupancy only.
+6. **Tesla ships order-of-magnitude data errors** in this endpoint. Treat any single
+   market's figure as provisional until reverified.
 
 ---
 
@@ -275,7 +256,9 @@ These apply to every number above. Carry them with the result.
 | Tesla US per-state | `data/sfb-pricing-harvest.json` -> `usStates[ST].u` |
 | Tesla international | `data/sfb-pricing-full.json` -> `records[CC].scAvgUtilization` |
 | Our occupancy | VPS `root@65.21.191.211:/root/sites/dcfc-dashboard/live_snapshot.json` |
-| Fields used | `net`, `ustate`, `name`, `n`, `kw`, `au["168"]`, `au_src` |
+| Fields used | `net`, `ustate`, `name`, `n`, `kw`, `au["168"]`, `au["1440"]`, `au_src` |
+| Aggregation script | VPS `/root/attic/occ_agg1440.py` |
 
-Aggregation is stall-weighted: `occ_state = sum(au168 x n) / sum(n)`.
-
+Aggregation is stall-weighted: `occ = sum(au x n) / sum(n)`. Country is parsed from the
+country name in the `name` suffix; a snapshot site row carries no country field.
+Canadian provinces and Puerto Rico are excluded from both panels.

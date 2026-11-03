@@ -1,0 +1,24 @@
+{
+  "_meta": {
+    "verifiedAt": "2026-11-03T04:30:00Z",
+    "method": "same-origin fetch from a logged-in tesla.com tab (endpoint is Akamai-gated; curl returns 403)",
+    "endpoint": "/api/energy/supercharger/pricing?productType=SuperCharger&countryCode={CC}[&stateCode={SC}]",
+    "scope": "full 248-code ISO sweep plus all 51 US jurisdictions",
+    "comparedAgainst": ["sfb-pricing-harvest.json", "sfb-pricing-full.json"],
+    "fieldsCompared": ["averageEnergyCost","scTeslaFeePPU","scTeslaFeeNonPPU","scCabinetCost","scOtherHardwareCost","scServicesCost","scShippingCost","scInstallationLaborCostLow","scInstallationLaborCostMedium","scInstallationLaborCostHigh","scMedianPriceToEVDriver","scAvgUtilization","currencyCode"]
+  },
+  "result": {
+    "internationalMarkets200": 31,
+    "usJurisdictions200": 51,
+    "changedMarkets": [],
+    "addedMarkets": [],
+    "removedMarkets": [],
+    "usStatesChanged": [],
+    "usFlatCostSignatureDistinct": 1,
+    "verdict": "No drift. Every field in every market is identical to the 2026-08-01 harvest."
+  },
+  "notes": [
+    "countryCode=CA alone returns HTTP 400; Canada requires a stateCode (province). countryCode=CA&stateCode=ON returns 200.",
+    "HTTP 500 means the market is not configured; HTTP 400 means the request shape is wrong. Do not conflate them."
+  ]
+}
