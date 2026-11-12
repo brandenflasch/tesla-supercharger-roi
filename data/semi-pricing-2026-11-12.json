@@ -1,0 +1,125 @@
+{
+  "_meta": {
+    "source": "https://www.tesla.com/api/energy/semi-charging/pricing?countryCode={CC}&productType=SemiCharger&stateCode=CA",
+    "harvested_utc": "2026-11-12T21:54Z to 21:56Z; pulled from a logged-in Chrome tab",
+    "method": "same-origin fetch from https://www.tesla.com/supercharger-for-business/get",
+    "markets_with_localized_page_200": [
+      "en_US",
+      "en_CA",
+      "fr_CA",
+      "de_DE",
+      "fr_FR",
+      "nl_NL",
+      "nl_BE",
+      "fr_BE",
+      "en_GB"
+    ],
+    "localized_page_404_2026-11-12": [
+      "es_MX",
+      "fr_CH",
+      "de_AT",
+      "it_IT",
+      "es_ES",
+      "sv_SE",
+      "no_NO"
+    ],
+    "pricing_500_2026-11-12": [
+      "MX",
+      "CH",
+      "AT",
+      "IT",
+      "ES",
+      "SE",
+      "NO"
+    ],
+    "changes_since_2026-09-15": [
+      "CA: NEW market. en_CA and fr_CA pages return 200 (both 404 on 2026-09-14); /en_CA/semi-charging-for-business/get returns 200. Pricing in CAD.",
+      "US, DE, FR, NL, BE, GB: all 7 value fields identical to 2026-09-15."
+    ],
+    "notes": [
+      "Canada: stateCode is required (HTTP 400 'Missing required fields' without it) but not validated. CA, ON, QC, BC and the bogus ZZ all return the same record.",
+      "semiChargerAllInclusiveFee is 0.08 in USD, EUR and GBP; Canada is 0.11 CAD. The discounted fee is 0.03 in every currency, CAD included.",
+      "Canada ratios to US: Megacharger 1.4190x, Basecharger 1.4194x, services 1.4333x, shipping 1.4000x, fee 1.375x.",
+      "The six non-Canada records below are carried from the 2026-09-15 archive after the value check; the Canada record is rebuilt from the 9 returned fields."
+    ]
+  },
+  "records": {
+    "US": {
+      "countryCode": "US",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 89500,
+      "semiChargerBasechargerCostPerPost": 15500,
+      "semiChargerServicesCostPerPost": 3000,
+      "semiChargerShippingCostPerPost": 1500,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "USD"
+    },
+    "CA": {
+      "countryCode": "CA",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 127000,
+      "semiChargerBasechargerCostPerPost": 22000,
+      "semiChargerServicesCostPerPost": 4300,
+      "semiChargerShippingCostPerPost": 2100,
+      "semiChargerAllInclusiveFee": 0.11,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "CAD"
+    },
+    "DE": {
+      "countryCode": "DE",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 77675,
+      "semiChargerBasechargerCostPerPost": 13175,
+      "semiChargerServicesCostPerPost": 2550,
+      "semiChargerShippingCostPerPost": 1275,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "EUR"
+    },
+    "FR": {
+      "countryCode": "FR",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 77675,
+      "semiChargerBasechargerCostPerPost": 13175,
+      "semiChargerServicesCostPerPost": 2550,
+      "semiChargerShippingCostPerPost": 1275,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "EUR"
+    },
+    "NL": {
+      "countryCode": "NL",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 77675,
+      "semiChargerBasechargerCostPerPost": 13175,
+      "semiChargerServicesCostPerPost": 2550,
+      "semiChargerShippingCostPerPost": 1275,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "EUR"
+    },
+    "BE": {
+      "countryCode": "BE",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 77675,
+      "semiChargerBasechargerCostPerPost": 13175,
+      "semiChargerServicesCostPerPost": 2550,
+      "semiChargerShippingCostPerPost": 1275,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "EUR"
+    },
+    "GB": {
+      "countryCode": "GB",
+      "stateCode": "CA",
+      "semiChargerMegachargerCostPerPost": 66625,
+      "semiChargerBasechargerCostPerPost": 11625,
+      "semiChargerServicesCostPerPost": 2250,
+      "semiChargerShippingCostPerPost": 1125,
+      "semiChargerAllInclusiveFee": 0.08,
+      "semiChargerAllInclusiveFeeDiscounted": 0.03,
+      "currencyCode": "GBP"
+    }
+  }
+}

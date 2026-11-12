@@ -262,8 +262,8 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <button id="themeToggle" class="theme-toggle" title="Toggle light / dark" aria-label="Toggle theme">☀</button>
   <div class="header anim" style="--i:0">
     <h1>Tesla Supercharger for Business: Global ROI Analysis</h1>
-    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 33 priced · 29 publicly live · <a href="#semiSection" style="color:#f97316;text-decoration:none;white-space:nowrap;">🚛 Semi Charging: 6 markets</a></div>
-    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of October&nbsp;22,&nbsp;2026</span></div>
+    <div class="sub">Data from <a href="https://www.tesla.com/supercharger-for-business/get/overview" target="_blank" rel="noopener" style="color:var(--accent);text-decoration:underline;">Tesla's Supercharger for Business</a> &middot; 33 priced · 29 publicly live · <a href="#semiSection" style="color:#f97316;text-decoration:none;white-space:nowrap;">🚛 Semi Charging: 7 markets</a></div>
+    <div class="byline">Made by Branden Flasch &middot; <span style="color:var(--text-muted)">Data accurate as of November&nbsp;12,&nbsp;2026</span></div>
     <div style="margin-top:12px;">
       <a href="fee/" style="display:inline-flex;align-items:center;gap:7px;padding:7px 14px;border:1px solid var(--border-bright);border-radius:9px;background:var(--surface2);color:var(--accent);text-decoration:none;font-size:0.9rem;font-weight:600;transition:border-color .15s,transform .15s;" onmouseover="this.style.borderColor='var(--accent)';this.style.transform='translateY(-1px)'" onmouseout="this.style.borderColor='var(--border-bright)';this.style.transform='none'">⚡ Supercharger Fee Calculator <span aria-hidden="true">→</span></a>
     </div>
@@ -282,7 +282,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
       <h2 id="mapTitle">Where Supercharger for Business Is Live</h2>
       <span class="avail-count" id="availCount">33 markets</span>
     </div>
-    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>33 markets</strong>, and a publicly-launched configurator in <strong>29</strong> of them (green, verified Oct 22). The other 4 (violet) return real pricing yet have no public configurator &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. and Canada are the only markets with sub-national pricing, and each has its own state or province view (blue). Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution.</div>
+    <div class="avail-sub" id="mapSub">Tesla has pricing configured in its API for <strong>33 markets</strong>, and a publicly-launched configurator in <strong>29</strong> of them (green, verified Nov 12). The other 4 (violet) return real pricing yet have no public configurator &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. and Canada are the only markets with sub-national pricing, and each has its own state or province view (blue). Mexico, Colombia, Australia, Saudi Arabia, Qatar &amp; Jordan have a program page with a contact form but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution.</div>
     <div class="map-zoom">
       <button data-view="world" class="zbtn active">🌍 World</button>
       <button data-view="emea" class="zbtn">🇪🇺 Europe &amp; Middle East</button>
@@ -469,7 +469,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="cmp-section anim" style="--i:14" id="semiSection">
     <div class="cmp-head">
       <h2>🚛 Semi Charging for Business</h2>
-      <span class="cab-badge" id="semiCount" style="background:rgba(249,115,22,0.12);color:#f97316">6 markets</span>
+      <span class="cab-badge" id="semiCount" style="background:rgba(249,115,22,0.12);color:#f97316">7 markets</span>
     </div>
     <div class="cmp-sub" id="semiSub"></div>
     <div class="semi-specs">
@@ -536,7 +536,7 @@ input[type=range]::-webkit-slider-thumb { -webkit-appearance: none; width: 14px;
   <div class="disc anim" style="--i:15">
     <strong>Disclaimer:</strong> Outputs are for indicative purposes only and should not be considered official predictions from Tesla. Tesla makes no guarantee of profitability. Actual results can differ materially.
     <strong>Model assumptions (reverse-engineered from Tesla's ROI API):</strong> 13% energy loss grid-to-battery (0.87 multiplier on revenue), 7% YoY utilization growth, $0.10/kWh Tesla operational fee escalating at 3%/yr, flat energy procurement cost (no utility rate escalation), no depreciation, no maintenance, no demand charges, no parking rent, excludes hardware taxes. No discounting (simple cumulative, not NPV). Utilization is Tesla's own published <code>scAvgUtilization</code>, an annual average; see the confidence note under the international comparison table — both the US and the international values reproduce against independently measured occupancy (R&sup2; 0.86 and 0.81 over 60 days), with a larger residual intercept internationally.
-    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of October&nbsp;22,&nbsp;2026.</strong> International FX via open.er-api.com (live). Semi Charging for Business: market pages verified September&nbsp;14,&nbsp;2026 on tesla.com; product specs from Tesla's U.S. Semi Charging for Business page; pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint (<code>productType=SemiCharger</code>). Tesla does not publish energy cost, driver price or utilization for Semi, so the Semi section shows purchase price only, with no payback. <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map. The Oct 1 refresh re-pulled all 32 markets, all 51 US jurisdictions and all 249 country codes: every value is identical to Aug 1, no new market is priced, and the 28/4 launched/unlaunched split is unchanged. The Oct 22 refresh found all 31 earlier international markets and all 51 US jurisdictions unchanged, and one new market: Canada, now publicly launched with per-province pricing (10 provinces priced; the 3 territories return no pricing). The comparison table shows Canada as its 10-province average; the Canada view shows each province.</em>
+    <br><strong>Sources &amp; date:</strong> Pricing pulled from Tesla's <code>/api/energy/supercharger/pricing</code> endpoint; public-launch status from per-market page checks. <strong>All data accurate as of November&nbsp;12,&nbsp;2026.</strong> International FX via open.er-api.com (live). Semi Charging for Business: market pages verified November&nbsp;12,&nbsp;2026 on tesla.com; product specs from Tesla's U.S. Semi Charging for Business page; pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint (<code>productType=SemiCharger</code>). Tesla does not publish energy cost, driver price or utilization for Semi, so the Semi section shows purchase price only, with no payback. <em>Note: the Aug 1 refresh found all 51 US jurisdictions unchanged since June 13. Tesla corrected Poland's energy cost (0.45 &rarr; 0.95 PLN/kWh, a ~2&times; understatement in the same class as its earlier Maine and Norway errors), trimmed Hungary's fee and hardware ~1%, and took 17 more markets publicly live. A full 249-country sweep added Liechtenstein — priced, but too small to render on the world map. The Oct 1 refresh re-pulled all 32 markets, all 51 US jurisdictions and all 249 country codes: every value is identical to Aug 1, no new market is priced, and the 28/4 launched/unlaunched split is unchanged. The Oct 22 refresh found all 31 earlier international markets and all 51 US jurisdictions unchanged, and one new market: Canada, now publicly launched with per-province pricing (10 provinces priced; the 3 territories return no pricing). The comparison table shows Canada as its 10-province average; the Canada view shows each province. The Nov 12 refresh re-pulled all 249 country codes, all 51 US jurisdictions and all 13 Canadian regions: every value in all 33 priced markets is identical to Oct 22, and the 29/4 launched/unlaunched split is unchanged. Mexico, Colombia and Australia now have a program page with a contact form, but no configurator and no pricing in the API, so no ROI can be computed for them yet. Semi Charging for Business added Canada (7 markets); the six earlier Semi markets are unchanged since Sep 15.</em>
   </div>
 </div>
 <div class="tt" id="tt"></div>
@@ -639,6 +639,7 @@ let metric = 'payback';
 // ===== CURRENCY =====
 // All model math runs in USD; these helpers convert + symbolize at display time.
 // Gulf currencies (SAR/AED/QAR/JOD) are USD-pegged, so the static fallbacks are exact.
+// MXN, COP and AUD float; their fallbacks are the open.er-api.com rates of 2026-11-12.
 const CURRENCIES = {
   USD: { symbol: '$',    label: 'USD — US Dollar' },
   EUR: { symbol: '€',    label: 'EUR — Euro' },
@@ -647,9 +648,12 @@ const CURRENCIES = {
   SAR: { symbol: 'SAR ', label: 'SAR — Saudi Riyal' },
   AED: { symbol: 'AED ', label: 'AED — UAE Dirham' },
   QAR: { symbol: 'QAR ', label: 'QAR — Qatari Riyal' },
-  JOD: { symbol: 'JOD ', label: 'JOD — Jordanian Dinar' }
+  JOD: { symbol: 'JOD ', label: 'JOD — Jordanian Dinar' },
+  MXN: { symbol: 'MX$',  label: 'MXN — Mexican Peso' },
+  COP: { symbol: 'COP ', label: 'COP — Colombian Peso' },
+  AUD: { symbol: 'A$',   label: 'AUD — Australian Dollar' }
 };
-const FX_FALLBACK = { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.37, SAR: 3.75, AED: 3.67, QAR: 3.64, JOD: 0.709 };
+const FX_FALLBACK = { USD: 1, EUR: 0.92, GBP: 0.79, CAD: 1.37, SAR: 3.75, AED: 3.67, QAR: 3.64, JOD: 0.709, MXN: 18.63, COP: 3301.6, AUD: 1.459 };
 const fxRates = { USD: 1 };
 let currency = 'USD';
 let fxRate = 1;            // model currency (RG().ccy) -> selected currency
@@ -1274,8 +1278,10 @@ const INTL = {
   IL: { n:'Israel',               iso:376, ccy:'ILS', e:0.41,  p:1.10,   u:242.8, fee:0.33,  hw:140330,   iL:105370,   iM:128500,   iH:151630 },
   TR: { n:'Turkey',               iso:792, ccy:'TRY', e:6.20,  p:13.00,  u:375.8, fee:4.34,  hw:1869400,  iL:779000,   iM:950000,   iH:1121000 }
 };
-// Program announced but pricing API returns HTTP 500 (not yet configured) as of harvest.
-const ANNOUNCED = { 682:'Saudi Arabia', 634:'Qatar', 400:'Jordan' };
+// Program page live (localized /supercharger-for-business info page with a lead form, no configurator
+// link) but pricing API returns HTTP 500 (not yet configured). Verified 2026-11-12.
+// Mexico (es_MX), Colombia (es_CO) and Australia (en_AU) are new in the 2026-11-12 check.
+const ANNOUNCED = { 484:'Mexico', 170:'Colombia', 36:'Australia', 682:'Saudi Arabia', 634:'Qatar', 400:'Jordan' };
 // Currency symbols + USD-per-unit fallback rates (used if the live FX fetch fails).
 const CCY_SYM = { USD:'$', CAD:'CA$', EUR:'€', GBP:'£', CHF:'CHF ', AED:'AED ', NOK:'NOK ', SEK:'SEK ', DKK:'DKK ', PLN:'zł ', CZK:'Kč ', HUF:'Ft ', RON:'lei ', ISK:'ISK ', ILS:'₪', TRY:'₺' };
 const FX_INTL_FB = { USD:1, CAD:1.37, EUR:0.92, GBP:0.79, CHF:0.89, AED:3.67, NOK:10.8, SEK:10.5, DKK:6.85, PLN:4.0, CZK:23.2, HUF:355, RON:4.6, ISK:138, ILS:3.7, TRY:39 };
@@ -1284,7 +1290,7 @@ const FX_INTL_FB = { USD:1, CAD:1.37, EUR:0.92, GBP:0.79, CHF:0.89, AED:3.67, NO
 const INTL_BY_ISO = {};
 for (const cc in INTL) INTL_BY_ISO[INTL[cc].iso] = Object.assign({ cc }, INTL[cc]);
 
-// Markets with a publicly-launched configurator page (re-verified 2026-10-22 — the rest return pricing
+// Markets with a publicly-launched configurator page (re-verified 2026-11-12 — the rest return pricing
 // from the API but have no public configurator: LV and LI 404; AE and TR now serve an info page with no
 // link to the /supercharger-for-business/get configurator, so they stay "priced").
 // Aug 1 sweep: 28 of 32 priced markets now serve a localized page (no redirect, real
@@ -1297,24 +1303,27 @@ const SFB_US_COLOR     = 'var(--accent)'; // US + Canada (have a state/province 
 const SFB_SOON_COLOR   = '#fbbf24';     // announced, not priced
 
 // ===== SEMI CHARGING FOR BUSINESS (data) =====
-// Markets with a localized /semi-charging-for-business page (HTTP 200, verified 2026-09-14).
-// 404 on the same date: en_CA, fr_CH, de_AT, it_IT, es_ES.
+// Markets with a localized /semi-charging-for-business page (HTTP 200, verified 2026-11-12).
+// 404 on the same date: es_MX, fr_CH, de_AT, it_IT, es_ES, sv_SE, no_NO.
+// Canada is new on 2026-11-12 (en_CA and fr_CA were 404 on 2026-09-14).
 // Price fields mirror Tesla's /api/energy/semi-charging/pricing?productType=SemiCharger record:
 //   m = semiChargerMegachargerCostPerPost, b = semiChargerBasechargerCostPerPost,
 //   s = semiChargerServicesCostPerPost,    sh = semiChargerShippingCostPerPost,
 //   fee = semiChargerAllInclusiveFee (per kWh), feeD = semiChargerAllInclusiveFeeDiscounted
-//   (returned by the API, NOT shown by Tesla's configurator). Harvested 2026-09-15; raw
-//   archive in data/semi-pricing-2026-09-15.json. fee is 0.08 in USD, EUR and GBP alike.
+//   (returned by the API, NOT shown by Tesla's configurator). Harvested 2026-11-12; raw
+//   archive in data/semi-pricing-2026-11-12.json. fee is 0.08 in USD, EUR and GBP alike;
+//   Canada is 0.11 CAD. The six earlier markets are identical to the 2026-09-15 pull.
 // The API has NO energy cost, driver price or utilization, so no payback is computed.
 const SEMI = {
   US: { n:'United States', ccy:'USD', locs:['en_US'], m:89500, b:15500, s:3000, sh:1500, fee:0.08, feeD:0.03 },
+  CA: { n:'Canada', ccy:'CAD', locs:['en_CA','fr_CA'], m:127000, b:22000, s:4300, sh:2100, fee:0.11, feeD:0.03 },
   DE: { n:'Germany', ccy:'EUR', locs:['de_DE'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
   FR: { n:'France', ccy:'EUR', locs:['fr_FR'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
   NL: { n:'Netherlands', ccy:'EUR', locs:['nl_NL'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
   BE: { n:'Belgium', ccy:'EUR', locs:['nl_BE','fr_BE'], m:77675, b:13175, s:2550, sh:1275, fee:0.08, feeD:0.03 },
   GB: { n:'United Kingdom', ccy:'GBP', locs:['en_GB'], m:66625, b:11625, s:2250, sh:1125, fee:0.08, feeD:0.03 }
 };
-const SEMI_PRICED_ASOF = 'September 15, 2026';
+const SEMI_PRICED_ASOF = 'November 12, 2026';
 const N_SEMI = Object.keys(SEMI).length;
 
 // Returns { tier, name, d } for a world-atlas feature, or null.
@@ -1353,7 +1362,7 @@ async function loadWorldMap() {
 const N_PRICED   = Object.keys(INTL).length;
 const N_LIVE     = LAUNCHED.size;
 const N_NO_PAGE  = N_PRICED - N_LIVE;
-const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>${N_PRICED} markets</strong>, and a publicly-launched configurator in <strong>${N_LIVE}</strong> of them (green, verified Oct 22). The other ${N_NO_PAGE} (violet) return real pricing yet have no public configurator &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. and Canada are the only markets with sub-national pricing, and each has its own state or province view (blue). Saudi Arabia, Qatar &amp; Jordan were announced but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution. Semi Charging for Business is live in ${N_SEMI} of these markets &mdash; see the Semi section below.`;
+const AVAIL_SUB = `Tesla has pricing configured in its API for <strong>${N_PRICED} markets</strong>, and a publicly-launched configurator in <strong>${N_LIVE}</strong> of them (green, verified Nov 12). The other ${N_NO_PAGE} (violet) return real pricing yet have no public configurator &mdash; priced internally, not yet launched. Overwhelmingly European; the U.S. and Canada are the only markets with sub-national pricing, and each has its own state or province view (blue). Mexico, Colombia, Australia, Saudi Arabia, Qatar &amp; Jordan have a program page with a contact form but return no pricing (amber). Liechtenstein is priced but is too small to render at this map resolution. Semi Charging for Business is live in ${N_SEMI} of these markets &mdash; see the Semi section below.`;
 const CA_SUB = `Per-province ROI across Canada&rsquo;s 10 provinces, from Tesla&rsquo;s Canadian pricing in CAD. The three territories return no pricing (grey). Hover any province for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
 const US_SUB = `Per-state ROI across all 50 states + DC, from Tesla's US pricing. Hover any state for the full breakdown; change the metric, install cost, or post count below &mdash; the map, rankings, 15-year projection and table all update.`;
 
@@ -1477,7 +1486,7 @@ function showCountryTT(ev, r) {
   const col = tierColor(r.tier);
   if (r.tier === 'soon') {
     ttEl.innerHTML = `<h3>${r.name}</h3>
-      <div class="tt-pb" style="color:${col}">Program announced · pricing not yet live</div>`;
+      <div class="tt-pb" style="color:${col}">Program page live · pricing not yet in the API</div>`;
   } else {
     const d = r.d, c = intlCalc(d);
     const pb = c.payback > 100 ? '100+ yr' : c.payback.toFixed(1) + ' yr';
@@ -1588,7 +1597,7 @@ function renderAvailLegend() {
   if (!el) return;
   let items;
   if (mapMetric === 'tier') {
-    items = [['var(--accent)', 'U.S. &amp; Canada — state/province tool'], ['#10b981', 'Publicly live (page + pricing) — ' + N_LIVE], ['#a78bfa', 'Priced in API, no public page — ' + N_NO_PAGE], ['#fbbf24', 'Announced, not priced'], ['var(--surface3)', 'Not a market']];
+    items = [['var(--accent)', 'U.S. &amp; Canada — state/province tool'], ['#10b981', 'Publicly live (page + pricing) — ' + N_LIVE], ['#a78bfa', 'Priced in API, no public page — ' + N_NO_PAGE], ['#fbbf24', 'Program page, not priced'], ['var(--surface3)', 'Not a market']];
   } else {
     items = availLegendItems().map(([l, c]) => [c, l]).concat([['var(--surface3)', 'No pricing']]);
   }
@@ -1829,7 +1838,7 @@ function renderSemi() {
   const tb = document.getElementById('semiBody');
   if (!tb) return;
   const sub = document.getElementById('semiSub');
-  if (sub) sub.innerHTML = `Tesla sells its Semi chargers to fleets and site hosts in <strong>${N_SEMI} markets</strong>: the U.S. plus Germany, France, the Netherlands, Belgium and the U.K. (European pages verified September 14, 2026). The pricing API returns hardware, services, shipping and Tesla's all-inclusive fee &mdash; but <strong>no energy cost, driver price or utilization</strong>, so this section shows the purchase price only, not payback. Minimum order is two posts.`;
+  if (sub) sub.innerHTML = `Tesla sells its Semi chargers to fleets and site hosts in <strong>${N_SEMI} markets</strong>: the U.S. and Canada plus Germany, France, the Netherlands, Belgium and the U.K. (pages verified November 12, 2026; Canada is new). The pricing API returns hardware, services, shipping and Tesla's all-inclusive fee &mdash; but <strong>no energy cost, driver price or utilization</strong>, so this section shows the purchase price only, not payback. Minimum order is two posts.`;
   const money = (v, d, kind) => v == null ? '<span class="semi-pend">—</span>' : fmtMoneyIn(v, d.ccy, semiDisplay, kind);
   const cc = Object.keys(SEMI);
   tb.innerHTML = cc.map(k => {
@@ -1853,7 +1862,7 @@ function renderSemi() {
   if (note) {
     const fx = semiDisplay === 'NATIVE' ? 'Showing each market in its own currency.' : `Normalized to ${semiDisplay} at ${fxLive ? 'live' : 'approx'} FX (open.er-api.com).`;
     const status = SEMI_PRICED_ASOF
-      ? `Pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint as of ${SEMI_PRICED_ASOF}. The API returns the same 0.08/kWh fee in USD, EUR and GBP (not FX-scaled), plus a second "discounted" fee of 0.03/kWh that Tesla's configurator does not show.`
+      ? `Pricing from Tesla's <code>/api/energy/semi-charging/pricing</code> endpoint as of ${SEMI_PRICED_ASOF}. The API returns the same 0.08/kWh fee in USD, EUR and GBP (not FX-scaled) and 0.11/kWh in CAD, plus a second "discounted" fee of 0.03/kWh that Tesla's configurator does not show.`
       : `<strong>Price fields are pending</strong> a pull from Tesla's pricing API; market status and specs are verified.`;
     note.innerHTML = `${status} Est. purchase price follows Tesla's configurator: Megacharger posts are priced in cabinet pairs, plus services and shipping per post. Excludes taxes and installation. ${fx}`;
   }
@@ -1910,7 +1919,7 @@ function setCurrency(c) {
   updateStaticMoney();
   updateFxNote();
 }
-const CCY_BTN = { USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', CAD: 'CA$', SAR: 'SAR', AED: 'AED', QAR: 'QAR', JOD: 'JOD' };
+const CCY_BTN = { USD: '$ USD', EUR: '€ EUR', GBP: '£ GBP', CAD: 'CA$', SAR: 'SAR', AED: 'AED', QAR: 'QAR', JOD: 'JOD', MXN: 'MXN', COP: 'COP', AUD: 'AUD' };
 function initCurrencySelect() {
   const g = document.getElementById('segUsCcy');
   if (!g) return;

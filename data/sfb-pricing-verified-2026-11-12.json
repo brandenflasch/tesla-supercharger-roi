@@ -1,0 +1,174 @@
+{
+  "_meta": {
+    "verifiedAt": "2026-11-12T21:51:43Z to 21:55:30Z",
+    "method": "same-origin fetch from a logged-in tesla.com tab (endpoint is Akamai-gated; curl returns 403)",
+    "endpoint": "/api/energy/supercharger/pricing?productType=SuperCharger&countryCode={CC}[&stateCode={SC}]",
+    "scope": "312 requests: 248 non-US ISO alpha-2 codes with no stateCode, 51 US jurisdictions, 13 Canadian provinces and territories. Plus 78 localized page pairs (info page and /get/overview).",
+    "comparedAgainst": [
+      "sfb-sweep-2026-10-22.json"
+    ],
+    "compareMethod": "FNV-1a hash of the 13 compared fields per record, computed in the browser and matched against hashes of the Oct 22 archive",
+    "fieldsCompared": [
+      "averageEnergyCost",
+      "scTeslaFeePPU",
+      "scTeslaFeeNonPPU",
+      "scCabinetCost",
+      "scOtherHardwareCost",
+      "scServicesCost",
+      "scShippingCost",
+      "scInstallationLaborCostLow",
+      "scInstallationLaborCostMedium",
+      "scInstallationLaborCostHigh",
+      "scMedianPriceToEVDriver",
+      "scAvgUtilization",
+      "currencyCode"
+    ]
+  },
+  "result": {
+    "statusCounts": {
+      "200": 92,
+      "400": 1,
+      "500": 219
+    },
+    "internationalMarkets200": 31,
+    "usJurisdictions200": 51,
+    "caProvinces200": 10,
+    "changedMarkets": [],
+    "addedMarkets": [],
+    "removedMarkets": [],
+    "usStatesChanged": [],
+    "caProvincesChanged": [],
+    "newResponseFields": [],
+    "verdict": "No drift. Every compared field in all 92 priced records is identical to the 2026-10-22 sweep."
+  },
+  "mexicoColombia": {
+    "MX": {
+      "pricingNoStateCode": 500,
+      "pricingWithStateCode": {
+        "CMX": 500,
+        "DF": 500,
+        "JAL": 500,
+        "NLE": 500,
+        "MEX": 500
+      },
+      "infoPage": {
+        "/es_MX/supercharger-for-business": 200,
+        "title": "Supercharger para empresas | Tesla México"
+      },
+      "configurator": {
+        "/es_MX/supercharger-for-business/get/overview": 404,
+        "/en_MX/supercharger-for-business/get/overview": 404
+      }
+    },
+    "CO": {
+      "pricingNoStateCode": 500,
+      "pricingWithStateCode": {
+        "DC": 500,
+        "ANT": 500,
+        "CUN": 500,
+        "BOG": 500
+      },
+      "infoPage": {
+        "/es_CO/supercharger-for-business": 200,
+        "title": "Supercharger para empresas | Tesla"
+      },
+      "configurator": {
+        "/es_CO/supercharger-for-business/get/overview": 404,
+        "/en_CO/supercharger-for-business/get/overview": 404
+      }
+    },
+    "summary": "Both markets serve a localized info page with a lead form (company, number of Superchargers, contact, property type, address). The page has no configurator link. The pricing API returns HTTP 500 for both, so no ROI can be computed."
+  },
+  "pages": {
+    "configurator200": [
+      "en_US",
+      "en_CA",
+      "fr_CA",
+      "de_DE",
+      "fr_FR",
+      "es_ES",
+      "it_IT",
+      "en_GB",
+      "nl_NL",
+      "nl_BE",
+      "fr_BE",
+      "de_AT",
+      "de_CH",
+      "fr_CH",
+      "it_CH",
+      "no_NO",
+      "sv_SE",
+      "da_DK",
+      "fi_FI",
+      "pl_PL",
+      "pt_PT",
+      "en_IE",
+      "cs_CZ",
+      "hu_HU",
+      "el_GR",
+      "ro_RO",
+      "hr_HR",
+      "sk_SK",
+      "sl_SI",
+      "de_LU",
+      "fr_LU",
+      "lt_LT",
+      "is_IS",
+      "he_IL"
+    ],
+    "infoPageOnly_noConfigurator": [
+      "es_MX",
+      "es_CO",
+      "en_AU",
+      "tr_TR",
+      "ar_AE",
+      "en_AE",
+      "ar_SA",
+      "en_SA",
+      "ar_QA",
+      "en_QA",
+      "en_JO",
+      "en_EU"
+    ],
+    "bothPaths404": [
+      "en_MX",
+      "es_PR",
+      "en_PR",
+      "es_CL",
+      "lv_LV",
+      "en_IL",
+      "ar_IL",
+      "ar_JO",
+      "et_EE",
+      "bg_BG",
+      "en_NZ",
+      "ja_JP",
+      "ko_KR",
+      "zh_HK",
+      "en_HK",
+      "zh_TW",
+      "en_SG",
+      "th_TH",
+      "en_TH",
+      "en_MY",
+      "ms_MY",
+      "en_IN",
+      "en_PH",
+      "zh_MO",
+      "en_MO",
+      "en_KW",
+      "ar_KW",
+      "en_BH",
+      "ar_BH",
+      "en_OM",
+      "ar_OM",
+      "de_LI"
+    ]
+  },
+  "notes": [
+    "es_MX, es_CO and en_AU info pages are first recorded here. Earlier archives hold no page check for these locales, so the exact date each page appeared is unknown. MX pricing was already HTTP 500 in earlier sweeps.",
+    "en_EU ('Tesla Other Europe') is a generic regional page, not a market.",
+    "29 markets have a public configurator and 4 priced markets (AE, LV, TR, LI) have none. Both counts are unchanged since 2026-10-22.",
+    "HTTP 500 means the market is not configured; HTTP 400 means the request shape is wrong (Canada with no stateCode)."
+  ]
+}

@@ -2,6 +2,7 @@
   "_meta": {
     "source": "https://www.tesla.com/api/energy/supercharger/pricing?countryCode={CC}&productType=SuperCharger[&stateCode={SC}]",
     "harvested": "2026-10-22",
+    "verified": "2026-11-12",
     "description": "Full pricing records for all 33 live Supercharger-for-Business markets. US and Canada pricing is per-state/province (US: see sfb-pricing-harvest.json usStates; Canada: records.CA_provinces); every other market is national.",
     "api_semantics": "stateCode is REQUIRED and validated for the US and Canada only (a missing CA stateCode returns HTTP 400 'Missing required fields'; a bogus US or CA state returns HTTP 500). Outside the US and Canada the parameter is ignored entirely - bogus, empty or omitted all return the same national record. A 500 therefore means the market is not configured, never a wrong region code.",
     "method": "same-origin fetch from a logged-in browser tab (Akamai-gated; curl/automation get 403)",
@@ -67,16 +68,29 @@
       "CH",
       "CA"
     ],
+    "info_page_only_pricing_500": [
+      "MX",
+      "CO",
+      "AU",
+      "SA",
+      "QA",
+      "JO"
+    ],
     "priced_but_page_404": [
       "LV",
       "TR",
       "AE",
       "LI"
     ],
-    "launch_check_note": "Verified 2026-10-22: en_CA and fr_CA /supercharger-for-business/get/overview return 200 (Canada newly launched). LV, TR, AE and LI still 404 on that path. AE (ar_AE, en_AE) and TR (tr_TR) now serve a localized /supercharger-for-business info page with no link to the configurator; SA, QA and JO do too, but their API pricing still returns 500. The 27 other launched non-US landing pages all link to the configurator. Verified 2026-10-01: all 28 launched localized /supercharger-for-business/get/overview pages still return 200; LV, TR, AE and LI still 404. Unchanged since 2026-08-01. Verified 2026-08-01: each localized /supercharger-for-business/get/overview returned 200 with no redirect and real configurator markup (the Polish page renders the localized title 'Supercharger dla firm | Tesla'). LV, TR, AE and LI still 404.",
+    "launch_check_note": "Verified 2026-11-12: all 29 launched markets still return 200 on /supercharger-for-business/get/overview; LV, TR, AE and LI still have no configurator. New info pages with a lead form and no configurator link: es_MX, es_CO and en_AU (pricing API still 500 for MX, CO and AU). Verified 2026-10-22: en_CA and fr_CA /supercharger-for-business/get/overview return 200 (Canada newly launched). LV, TR, AE and LI still 404 on that path. AE (ar_AE, en_AE) and TR (tr_TR) now serve a localized /supercharger-for-business info page with no link to the configurator; SA, QA and JO do too, but their API pricing still returns 500. The 27 other launched non-US landing pages all link to the configurator. Verified 2026-10-01: all 28 launched localized /supercharger-for-business/get/overview pages still return 200; LV, TR, AE and LI still 404. Unchanged since 2026-08-01. Verified 2026-08-01: each localized /supercharger-for-business/get/overview returned 200 with no redirect and real configurator markup (the Polish page renders the localized title 'Supercharger dla firm | Tesla'). LV, TR, AE and LI still 404.",
     "map_note": "LI (iso 438) is absent from world-atlas 110m (175 features). It is counted in the data but cannot render on the world map without upgrading to the 50m atlas (739K vs 105K).",
     "changes_since_2026_08_01": [
       "NONE. All 32 market records (13 fields each) and all 51 US jurisdictions are byte-identical to the 2026-08-01 pull. No new country returned pricing. Raw archive: sfb-sweep-2026-10-01.json."
+    ],
+    "changes_since_2026_10_22": [
+      "NONE in pricing. All 92 priced records (31 non-US markets, 51 US jurisdictions, 10 Canadian provinces; 13 fields each) are identical to the 2026-10-22 sweep. No new country returned pricing.",
+      "MX, CO, AU: localized /supercharger-for-business info page with a lead form is live; no configurator, pricing API returns 500. Shown as amber on the map.",
+      "Verification record: sfb-pricing-verified-2026-11-12.json."
     ],
     "changes_since_2026_10_01": [
       "US: no change. All 51 jurisdictions identical.",

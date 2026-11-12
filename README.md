@@ -91,18 +91,20 @@ Single self-contained HTML file. No build step.
 
 ## Data Source
 
-All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last refreshed 2026-10-22.** All 31 earlier international markets and all 51 US jurisdictions are unchanged since 2026-08-01. New: Canada (per-province pricing). Raw archives live in `data/`.
+All data pulled from Tesla's `/api/energy/supercharger/pricing` endpoint via the [Supercharger For Business configurator](https://www.tesla.com/supercharger-for-business/get/overview). **Last verified 2026-11-12** (last value change: 2026-10-22, Canada added). All 92 priced records are identical to the 2026-10-22 sweep. New on 2026-11-12: Mexico, Colombia and Australia have a program page with a lead form, but no configurator and no pricing. Raw archives live in `data/`.
 
 The endpoint is Akamai-gated — `curl` and other automation get a 403. Pull it with a same-origin `fetch` from a logged-in browser tab.
 
 ### API semantics
 `stateCode` is required and validated **for the US and Canada only**; a bogus US or Canadian state returns HTTP 500, and Canada with no `stateCode` returns HTTP 400 (`Missing required fields`). Everywhere else the parameter is ignored entirely — bogus, empty, and omitted all return the same national record. So an HTTP 500 always means "market not configured", never a wrong region code. That makes a country sweep reliable: hit every ISO 3166-1 alpha-2 code with no `stateCode` and read 200 vs 500. Treat a 400 as "priced per region" and re-query with region codes (this is how Canada appeared on 2026-10-22).
 
-### Coverage (2026-10-22)
+### Coverage (verified 2026-11-12)
 - **33 markets priced.** Swept all 249 ISO alpha-2 codes: 31 non-US returned pricing, 216 returned 500, `CA` returned 400 (needs a province).
 - **29 publicly launched** (localized `/supercharger-for-business/get/overview` returns 200). Up from 28 on 2026-10-01 (Canada: `en_CA`, `fr_CA`).
 - **4 priced with no public configurator:** `AE` `LV` `TR` `LI`. `AE` and `TR` now serve a localized `/supercharger-for-business` info page, but it has no configurator link and `/get/overview` still 404s.
-- **Announced but unpriced:** Saudi Arabia, Qatar, Jordan — pricing still 500. Each now has an info page with no configurator, like `AE` and `TR`.
+- **Program page, unpriced:** Mexico, Colombia, Australia, Saudi Arabia, Qatar, Jordan — pricing still 500. Each has a localized `/supercharger-for-business` info page with a lead form and no configurator, like `AE` and `TR`.
+- **Mexico and Colombia (2026-11-12):** `/es_MX/supercharger-for-business` and `/es_CO/supercharger-for-business` return 200. `/get/overview` returns 404 for `es_MX`, `en_MX`, `es_CO` and `en_CO`. The pricing API returns 500 with no `stateCode` and with region codes (`CMX`, `JAL`, `NLE`, `DC`, `ANT`, `BOG`). The tool shows both markets amber and computes no ROI for them. `en_AU` is in the same state; earlier archives hold no `en_AU` page check, so its start date is unknown.
+- **Nov 12 sweep:** 312 requests returned 92 × 200, 219 × 500 and 1 × 400 (`CA` with no province), the same counts as Oct 22. Record: `data/sfb-pricing-verified-2026-11-12.json`.
 
 ### Canada (new 2026-10-22, CAD)
 Per-province, like the US. The **🇨🇦 Canada** view is a province-by-province ROI tool (map, rankings, 15-year projection, table) built the same way as the 50-state view, in CAD by default. The international comparison shows Canada as its 10-province average, the same way the US row uses the 50-state + DC average. NT, NU and YT return 500 and render grey. Province outlines: Natural Earth 1:50m admin-1 (public domain), simplified with mapshaper and inlined.
@@ -129,23 +131,26 @@ Quebec's 0.044 is the lowest energy cost in the whole dataset. Per the data-erro
 
 A separate section covers Tesla's Semi charger program (Megacharger + Basecharger).
 
-- **Markets (verified 2026-09-14):** US, DE, FR, NL, BE (`nl_BE` + `fr_BE`), GB. Each localized `/semi-charging-for-business` page returns 200. `en_CA`, `fr_CH`, `de_AT`, `it_IT` and `es_ES` return 404.
-- **Endpoint:** `/api/energy/semi-charging/pricing?countryCode={CC}&productType=SemiCharger&stateCode=CA`. The configurator hardcodes `stateCode=CA`. Same Akamai gate as the Supercharger endpoint: the Puppeteer browser gets 403, so pull it from a logged-in Chrome tab.
+- **Markets (verified 2026-11-12):** US, CA (`en_CA` + `fr_CA`, new), DE, FR, NL, BE (`nl_BE` + `fr_BE`), GB. Each localized `/semi-charging-for-business` page returns 200. `es_MX`, `fr_CH`, `de_AT`, `it_IT`, `es_ES`, `sv_SE` and `no_NO` return 404.
+- **Endpoint:** `/api/energy/semi-charging/pricing?countryCode={CC}&productType=SemiCharger&stateCode=CA`. The configurator hardcodes `stateCode=CA`. Canada requires a `stateCode` (HTTP 400 without it) but does not validate it: `ON`, `QC`, `BC` and a bogus `ZZ` return the same record. Same Akamai gate as the Supercharger endpoint: the Puppeteer browser gets 403, so pull it from a logged-in Chrome tab.
 - **Fields:** `semiChargerMegachargerCostPerPost`, `semiChargerBasechargerCostPerPost`, `semiChargerServicesCostPerPost`, `semiChargerShippingCostPerPost`, `semiChargerAllInclusiveFee`, `currencyCode`.
 - **No payback.** The Semi record has no energy cost, driver price, utilization or install tiers, so the section shows purchase price only.
 - **Est. purchase price** uses the configurator formula: `megaCost × ceil(megaPosts/2) × 2 + baseCost × basePosts + (services + shipping) × allPosts`. Taxes and installation are excluded.
-- Data lives in the `SEMI` object in `index.html`. Set `SEMI_PRICED_ASOF` after a pull. Raw archive: `data/semi-pricing-2026-09-15.json`.
+- Data lives in the `SEMI` object in `index.html`. Set `SEMI_PRICED_ASOF` after a pull. Raw archive: `data/semi-pricing-2026-11-12.json` (earlier: `data/semi-pricing-2026-09-15.json`).
 
-### Semi pricing (2026-09-15)
+### Semi pricing (2026-11-12)
 | Market | Ccy | Megacharger/post | Basecharger/post | Services/post | Shipping/post | Fee/kWh | Discounted fee |
 |---|---|---|---|---|---|---|---|
 | US | USD | 89,500 | 15,500 | 3,000 | 1,500 | 0.08 | 0.03 |
+| CA (new) | CAD | 127,000 | 22,000 | 4,300 | 2,100 | 0.11 | 0.03 |
 | DE / FR / NL / BE | EUR | 77,675 | 13,175 | 2,550 | 1,275 | 0.08 | 0.03 |
 | GB | GBP | 66,625 | 11,625 | 2,250 | 1,125 | 0.08 | 0.03 |
 
 - US 2-post Megacharger = 89,500×2 + 4,500×2 = **$188,000**, which matches Electrek's May 1 report.
 - Basecharger, services and shipping are exactly 0.85× US (EUR) and 0.75× US (GBP). Megacharger is not: EUR is 0.8679× and GBP is 0.7444×.
-- The fee is 0.08 in every currency (not FX-scaled). `semiChargerAllInclusiveFeeDiscounted` (0.03) is not read by Tesla's configurator.
+- The six earlier markets are identical to the 2026-09-15 pull.
+- Canada is about 1.42× US for hardware (Megacharger 1.419×, Basecharger 1.419×, services 1.433×, shipping 1.400×) and 1.375× for the fee.
+- The fee is 0.08 in USD, EUR and GBP (not FX-scaled); Canada is 0.11 CAD. `semiChargerAllInclusiveFeeDiscounted` (0.03) is not read by Tesla's configurator.
 - Akamai can answer HTTP 429 with `{"cpr_chlge":"true"}` after heavy automated traffic. A normal page load in Chrome cleared it.
 
 ## Disclaimer
